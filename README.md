@@ -17,7 +17,6 @@ Em vez de responder apenas com base no treinamento geral do modelo, o assistente
 O projeto trabalha com documentos nos seguintes formatos:
 
 - **PDF** — extração de texto com PyMuPDF (inclui número da página)
-- **Planilhas** — `.xlsx`, `.xls` via Pandas/OpenPyXL (preserva relação entre colunas/linhas)
 - **Documentos de texto** — `.docx`, `.doc` via python-docx
 
 ---
@@ -36,9 +35,9 @@ O sistema segue o padrão de **Pipeline RAG**:
     │                                                    │    │
     ▼                                                    ▼    ▼
 ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
-│FileLoader│─▶│ Chunking │─▶│Embeddings│─▶│  Chroma  │─▶│   LLM    │
-│(PDF/DOCX/ │  │(Divisão  │  │(Sentence│  │  (Vector │  │(Ollama/  │
-│ XLSX)     │  │Semântica)│  │Transformers)│  Store)  │  │ Llama3)  │
+│FileLoader│─▶│ Chunking│─▶│Embeddings│─▶│  Chroma │─▶│   LLM    │
+│(PDF/DOCX)│  │(Divisão  │  │(Sentence │  │  (Vector │  │(Ollama/  │
+│          │  │Semântica)│  │Transformers)│  Store)  │  │ Llama3)  │
 └──────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────┘
 ```
 
@@ -300,14 +299,12 @@ Response: {
 ## Funcionalidades Principais
 
 ### ✅ Ingestão Multiformato
-- Upload de PDF, DOCX, XLSX
-- Extração de metadados (página, planilha, linhas)
-- Preservação de estrutura tabular em planilhas
+- Upload de PDF, DOCX
+- Extração de metadados (páginas)
 
 ### ✅ Chunking Inteligente
 - Divisão recursiva por caracteres
 - Preservação de contexto com overlap
-- Tabelas XLSX mantidas como blocos coesos
 
 ### ✅ Busca Semântica
 - Embeddings multilíngues (português/inglês)
@@ -316,7 +313,7 @@ Response: {
 
 ### ✅ Citação de Fontes
 - Cada resposta inclui trechos originais usados
-- Localização precisa (página, planilha, chunk)
+- Localização precisa (página, chunk)
 - Score de similaridade para cada fonte
 
 ### ✅ Interface de Chat
@@ -337,7 +334,7 @@ A suite de testes cobre todos os componentes do sistema:
 | Chunking | 9 | Divisão de texto, tabelas, overlap |
 | Schemas | 10 | Validação de requests/responses |
 | LLM | 5 | Prompt building, erro de conexão |
-| File Loader | 6 | Extração PDF, DOCX, XLSX |
+| File Loader | 6 | Extração PDF, DOCX |
 | Embeddings | 4 | Geração de vetores, fallback |
 | Vector Store | 5 | Indexação, busca, filtro |
 | API | 5 | Endpoints REST, upload, chat |
@@ -366,7 +363,6 @@ A suite de testes cobre todos os componentes do sistema:
 | LLM | Ollama + Llama 3.1 | Local |
 | PDF | PyMuPDF | 1.24+ |
 | DOCX | python-docx | 1.1+ |
-| XLSX | Pandas + OpenPyXL | 2.2+ / 3.1+ |
 | Frontend | React + Vite + TypeScript | 18+ |
 | Testes | pytest | 9.0+ |
 
