@@ -1,223 +1,190 @@
+"""
+Orquestrador do pipeline RAG (Retrieval-Augmented Generation).
+
+Coordena todos os serviços do pipeline:
+1. Ingestão: carrega arquivo → extrai texto → chunking → embedding → indexa
+2. Resposta: recebe pergunta → embedding → busca vetorial → prompt → LLM
+
+É o ponto central da aplicação, consumido pelos endpoints da API.
+"""
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Sequence
-from uuid import uuid4
 
-from app.core.config import Settings, get_settings
+from app.core.config import Settings
 from app.core.storage import DocumentStorage
-from app.models import ChatResult, IncomingFile, StoredDocument, VectorMatch
-from app.services.chunking import ChunkingService
-from app.services.embeddings import EmbeddingService
-from app.services.file_loader import FileLoaderService
-from app.services.llm import OllamaClient, OllamaUnavailableError
+from app.models import ChatResult, DocumentChunk, DocumentType, IncomingFile, StoredDocument, VectorMatch
+from app.services.chunking import chunk_sections
+from app.services.embeddings import get_embeddings
+from app.services.file_loader import load_file_sections
+from app.services.llm import build_rag_prompt, generate_answer
 from app.services.vector_store import VectorStore
-
-_DEFAULT_MIME_TYPES: dict[str, str] = {
-    ".pdf": "application/pdf",
-    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-}
 
 
 class RAGService:
-    def __init__(
-        self,
-        settings: Settings | None = None,
-        storage: DocumentStorage | None = None,
-        file_loader: FileLoaderService | None = None,
-        chunking_service: ChunkingService | None = None,
-        embeddings_service: EmbeddingService | None = None,
-        vector_store: VectorStore | None = None,
-        llm_client: OllamaClient | None = None,
-    ) -> None:
-        self.settings = settings or get_settings()
-        self.storage = storage or DocumentStorage(self.settings)
-        self.file_loader = file_loader or FileLoaderService()
-        self.chunking_service = chunking_service or ChunkingService(
-            max_chunk_chars=self.settings.chunk_size_chars,
-            sentence_overlap=self.settings.chunk_overlap_sentences,
-        )
-        self.embeddings_service = embeddings_service or EmbeddingService(self.settings.embedding_model)
-        self.vector_store = vector_store or VectorStore(
-            persist_directory=self.settings.chroma_dir,
-            collection_name=self.settings.chroma_collection_name,
-        )
-        self.llm_client = llm_client or OllamaClient(
-            base_url=self.settings.ollama_base_url,
-            model=self.settings.ollama_model,
-            timeout_seconds=self.settings.ollama_timeout_seconds,
-        )
+    """
+    Serviço principal que orquestra o pipeline RAG completo.
+
+    Mantém referências ao storage de documentos e ao vector store,
+    coordenando o fluxo de ingestão e consulta.
+    """
+
+    def __init__(self, settings: Settings, storage: DocumentStorage, vector_store: VectorStore) -> None:
+        """
+        Inicializa o serviço RAG com suas dependências.
+
+        Args:
+            settings: Configurações da aplicação
+            storage: Gerenciador de persistência de documentos
+            vector_store: Banco de vetores para busca semântica
+        """
+        self.settings = settings
+        self.storage = storage
+        self.vector_store = vector_store
 
     def list_documents(self) -> list[StoredDocument]:
+        """
+        Lista todos os documentos indexados.
+
+        Returns:
+            Lista de documentos ordenados por data decrescente
+        """
         return self.storage.list_documents()
 
-    def ingest_files(self, files: Sequence[IncomingFile]) -> list[StoredDocument]:
-        if not files:
-            raise ValueError("At least one file is required for ingestion.")
+    def ingest_files(self, incoming_files: list[IncomingFile]) -> list[StoredDocument]:
+        """
+        Processa uma lista de arquivos pelo pipeline completo de ingestão.
 
-        ingested_documents: list[StoredDocument] = []
-        for incoming_file in files:
-            if not incoming_file.filename.strip():
-                raise ValueError("Each uploaded file must have a filename.")
-            if not incoming_file.content:
-                raise ValueError(f"File '{incoming_file.filename}' is empty.")
+        Fluxo por arquivo:
+        1. Detecta tipo e extrai texto (file_loader)
+        2. Divide em chunks semânticos (chunking)
+        3. Gera embeddings (embeddings)
+        4. Indexa no ChromaDB (vector_store)
+        5. Registra metadados no JSON (storage)
 
-            document_type = self.file_loader.detect_document_type(
-                incoming_file.filename,
-                incoming_file.content_type,
-            )
-            document_id = uuid4().hex
-            mime_type = self._normalize_mime_type(
-                incoming_file.content_type,
-                incoming_file.filename,
-            )
-            original_path = self.storage.save_original_file(
-                document_id=document_id,
-                filename=incoming_file.filename,
-                content=incoming_file.content,
-            )
-            sections = self.file_loader.load_sections(
-                file_path=original_path,
-                document_id=document_id,
-                filename=incoming_file.filename,
-                mime_type=mime_type,
-            )
-            chunks = self.chunking_service.chunk_sections(sections)
+        Args:
+            incoming_files: Lista de arquivos recebidos via upload
+
+        Returns:
+            Lista de documentos processados e indexados
+
+        Raises:
+            ValueError: Se algum arquivo tiver formato não suportado
+            RuntimeError: Se houver erro no processamento
+        """
+        stored_documents: list[StoredDocument] = []
+
+        for incoming_file in incoming_files:
+            # 1. Extrai seções de texto do arquivo
+            sections = load_file_sections(incoming_file)
+            if not sections:
+                raise ValueError(f"No text could be extracted from {incoming_file.filename}")
+
+            document_id = sections[0].document_id
+            document_type = sections[0].document_type
+
+            # 2. Divide em chunks
+            chunks = chunk_sections(sections, self.settings)
             if not chunks:
-                raise ValueError(f"No indexable chunks were generated for '{incoming_file.filename}'.")
+                raise ValueError(f"No chunks could be created from {incoming_file.filename}")
 
-            embeddings = self.embeddings_service.encode([chunk.text for chunk in chunks])
+            # 3. Gera embeddings para todos os chunks
+            chunk_texts = [chunk.text for chunk in chunks]
+            embeddings = get_embeddings(chunk_texts, self.settings)
+
+            # 4. Indexa no vector store
             self.vector_store.add_chunks(chunks, embeddings)
 
+            # 5. Salva o arquivo original
+            original_path = self.storage.save_original_file(
+                document_id, incoming_file.filename, incoming_file.content
+            )
+
+            # 6. Registra metadados
             stored_document = StoredDocument(
                 id=document_id,
                 filename=incoming_file.filename,
-                mime_type=mime_type,
+                mime_type=incoming_file.content_type or "application/octet-stream",
                 document_type=document_type,
                 chunk_count=len(chunks),
                 created_at=datetime.now(timezone.utc),
                 original_path=str(original_path),
             )
             self.storage.upsert_document(stored_document)
-            ingested_documents.append(stored_document)
+            stored_documents.append(stored_document)
 
-        return ingested_documents
+        return stored_documents
 
     def answer_question(
         self,
         question: str,
         document_id: str | None = None,
-        top_k: int = 5,
+        top_k: int | None = None,
     ) -> ChatResult:
-        cleaned_question = question.strip()
-        if not cleaned_question:
+        """
+        Responde uma pergunta usando o pipeline RAG.
+
+        Fluxo:
+        1. Gera embedding da pergunta
+        2. Busca chunks similares no vector store
+        3. Constrói prompt com contexto recuperado
+        4. Envia ao LLM e retorna resposta + fontes
+
+        Args:
+            question: Pergunta do usuário
+            document_id: Se fornecido, limita busca a este documento
+            top_k: Número de chunks a recuperar (usa padrão se None)
+
+        Returns:
+            Resultado com resposta do LLM e fontes citadas
+
+        Raises:
+            ValueError: Se a pergunta for inválida
+            RuntimeError: Se houver erro na comunicação com LLM ou vector store
+        """
+        if not question or not question.strip():
             raise ValueError("Question cannot be empty.")
 
-        query_embedding = self.embeddings_service.embed_query(cleaned_question)
-        matches = self.vector_store.query(query_embedding, top_k, document_id=document_id)
+        k = top_k if top_k is not None else self.settings.top_k_default
 
+        # 1. Embedding da pergunta
+        query_embeddings = get_embeddings([question.strip()], self.settings)
+        if not query_embeddings:
+            raise RuntimeError("Failed to generate query embedding.")
+        query_embedding = query_embeddings[0]
+
+        # 2. Busca vetorial
+        matches = self.vector_store.search(query_embedding, k, document_id)
         if not matches:
             return ChatResult(
-                answer=self._build_fallback_answer(cleaned_question, matches, document_id=document_id),
+                answer="I couldn't find any relevant information in the provided documents to answer your question.",
                 sources=[],
             )
 
-        prompt = self._build_prompt(cleaned_question, matches)
-        try:
-            answer = self.llm_client.generate(prompt)
-        except OllamaUnavailableError:
-            answer = self._build_fallback_answer(cleaned_question, matches, document_id=document_id)
+        # 3. Constrói prompt com contexto
+        context_chunks = [match.text for match in matches]
+        prompt = build_rag_prompt(question, context_chunks)
+
+        # 4. Gera resposta via LLM
+        answer = generate_answer(prompt, self.settings)
 
         return ChatResult(answer=answer, sources=matches)
 
-    def _build_prompt(self, question: str, matches: Sequence[VectorMatch]) -> str:
-        context_blocks = []
-        for index, match in enumerate(matches, start=1):
-            context_blocks.append(
-                "\n".join(
-                    [
-                        f"Source {index}:",
-                        f"Document: {match.filename}",
-                        self._format_location(match),
-                        f"Chunk index: {match.chunk_index}",
-                        f"Score: {match.score:.3f}",
-                        "Excerpt:",
-                        self._truncate_text(match.text, 1200),
-                    ]
-                ).strip()
-            )
 
-        context = "\n\n".join(context_blocks)
-        return "\n".join(
-            [
-                "You are a careful document question-answering assistant.",
-                "Use only the provided context to answer the question.",
-                "If the context does not contain the answer, say that the answer could not be determined from the indexed documents.",
-                "Respond in the same language as the question when possible.",
-                "Keep the answer concise but helpful.",
-                "",
-                f"Question: {question}",
-                "",
-                "Context:",
-                context,
-            ]
-        )
+def create_rag_service(settings: Settings) -> RAGService:
+    """
+    Factory que cria uma instância completa do RAGService.
 
-    def _build_fallback_answer(
-        self,
-        question: str,
-        matches: Sequence[VectorMatch],
-        document_id: str | None = None,
-    ) -> str:
-        if not matches:
-            scope_message = "the indexed documents" if document_id is None else f"document '{document_id}'"
-            return (
-                "I couldn't reach Ollama, and no relevant chunks were retrieved from "
-                f"{scope_message}. So I can't answer the question confidently yet."
-            )
+    Inicializa todas as dependências (storage e vector store)
+    com base nas configurações fornecidas.
 
-        lines = [
-            "I couldn't reach Ollama, so this answer is built deterministically from the retrieved document chunks.",
-            f"Question: {question}",
-            "",
-            "Most relevant source excerpts:",
-        ]
-        for index, match in enumerate(matches, start=1):
-            lines.append(
-                f"{index}. {match.filename} ({self._format_location(match)}, chunk {match.chunk_index}, score {match.score:.3f}): "
-                f"{self._truncate_text(match.text, 260)}"
-            )
-        lines.append("")
-        lines.append("Answer: The retrieved passages above are the best available evidence for the question.")
-        return "\n".join(lines)
+    Args:
+        settings: Configurações da aplicação
 
-    def _format_location(self, match: VectorMatch) -> str:
-        parts: list[str] = []
-        if match.page is not None:
-            parts.append(f"page {match.page}")
-        if match.sheet:
-            parts.append(f"sheet {match.sheet}")
-        if match.row_start is not None and match.row_end is not None:
-            parts.append(f"rows {match.row_start}-{match.row_end}")
-        return ", ".join(parts) if parts else "document chunk"
+    Returns:
+        Instância pronta para uso de RAGService
+    """
+    storage = DocumentStorage(settings)
+    vector_store = VectorStore(settings)
+    return RAGService(settings, storage, vector_store)
 
-    def _truncate_text(self, text: str, limit: int) -> str:
-        collapsed = " ".join(text.split())
-        if len(collapsed) <= limit:
-            return collapsed
-        return f"{collapsed[: limit - 1].rstrip()}…"
-
-    def _normalize_mime_type(self, mime_type: str | None, filename: str) -> str:
-        if mime_type and mime_type != "application/octet-stream":
-            return mime_type
-        return _DEFAULT_MIME_TYPES.get(self._extension(filename), "application/octet-stream")
-
-    def _extension(self, filename: str) -> str:
-        from pathlib import Path
-
-        return Path(filename).suffix.lower()
-
-
-def create_rag_service(settings: Settings | None = None) -> RAGService:
-    return RAGService(settings=settings or get_settings())

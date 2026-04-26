@@ -1,3 +1,11 @@
+"""
+Endpoints para gestão de documentos.
+
+Fornece operações CRD (Create, Read, Delete implícito via sobrescrita)
+para documentos no sistema RAG:
+- Listar documentos indexados
+- Fazer upload de novos documentos para ingestão
+"""
 from __future__ import annotations
 
 import asyncio
@@ -13,11 +21,32 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 
 
 def _to_document_summary(document: StoredDocument) -> DocumentSummary:
+    """
+    Converte um StoredDocument para o schema de resumo da API.
+
+    Args:
+        document: Documento do domínio
+
+    Returns:
+        DocumentSummary para serialização JSON
+    """
     return DocumentSummary.model_validate(document)
 
 
 @router.get("", response_model=list[DocumentSummary])
 async def list_documents(service: RAGService = Depends(get_rag_service)) -> list[DocumentSummary]:
+    """
+    Lista todos os documentos indexados no sistema.
+
+    Os documentos são retornados ordenados por data de criação
+    decrescente (mais recentes primeiro).
+
+    Args:
+        service: Serviço RAG injetado via dependência
+
+    Returns:
+        Lista de resumos de documentos
+    """
     documents = await asyncio.to_thread(service.list_documents)
     return [_to_document_summary(document) for document in documents]
 
@@ -27,6 +56,24 @@ async def upload_documents(
     files: list[UploadFile] = File(..., description="One or more files to ingest"),
     service: RAGService = Depends(get_rag_service),
 ) -> UploadResponse:
+    """
+    Faz upload de um ou mais documentos para ingestão no sistema RAG.
+
+    Os arquivos são processados de forma síncrona (em thread separada)
+    para evitar bloqueio do event loop do asyncio. Cada arquivo passa
+    por extração de texto, chunking, embedding e indexação vetorial.
+
+    Args:
+        files: Lista de arquivos para upload
+        service: Serviço RAG injetado via dependência
+
+    Returns:
+        Resposta com os documentos processados e indexados
+
+    Raises:
+        HTTPException: 400 se nenhum arquivo for enviado ou se houver erro de validação
+        HTTPException: 503 se houver erro no processamento do serviço
+    """
     if not files:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="At least one file is required.")
 
@@ -51,3 +98,4 @@ async def upload_documents(
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 
     return UploadResponse(documents=[_to_document_summary(document) for document in documents])
+

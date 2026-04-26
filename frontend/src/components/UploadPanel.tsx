@@ -1,20 +1,52 @@
+/**
+ * Painel de upload de documentos para ingestão na base de conhecimento.
+ *
+ * Permite ao usuário selecionar um ou mais arquivos (PDF, DOCX, XLSX)
+ * e enviá-los ao backend para processamento, chunking e indexação.
+ * Exibe a lista de arquivos selecionados com seus tamanhos.
+ */
 import { ChangeEvent, FormEvent, useRef, useState } from 'react';
 
+/** Propriedades aceitas pelo componente UploadPanel. */
 interface UploadPanelProps {
+  /** Mensagem de erro do upload, ou null se não houver erro. */
   errorMessage: string | null;
+  /** Indica se um upload está em andamento. */
   isUploading: boolean;
+  /** Callback chamado quando o usuário confirma o upload. */
   onUpload: (files: File[]) => Promise<void>;
 }
 
+/**
+ * Componente de painel de upload.
+ *
+ * Gerencia o estado local dos arquivos selecionados e delega
+ * o envio ao componente pai via callback onUpload.
+ */
 export default function UploadPanel({ errorMessage, isUploading, onUpload }: UploadPanelProps) {
+  /** Lista de arquivos atualmente selecionados pelo usuário. */
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  /** Referência ao input de arquivo para permitir limpar o campo após upload. */
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  /**
+   * Handler de mudança no input de arquivo.
+   * Atualiza o estado com os arquivos selecionados.
+   *
+   * @param event - Evento de change do input file
+   */
   function handleFileChange(event: ChangeEvent<HTMLInputElement>): void {
     const files = event.target.files;
     setSelectedFiles(files === null ? [] : Array.from(files));
   }
 
+  /**
+   * Handler de envio do formulário de upload.
+   * Valida a seleção, chama o callback do pai e limpa o estado.
+   *
+   * @param event - Evento de submit do formulário
+   */
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
 
@@ -29,7 +61,7 @@ export default function UploadPanel({ errorMessage, isUploading, onUpload }: Upl
         fileInputRef.current.value = '';
       }
     } catch {
-      // The parent component owns the error state.
+      // O componente pai é responsável pelo estado de erro.
     }
   }
 
@@ -42,6 +74,7 @@ export default function UploadPanel({ errorMessage, isUploading, onUpload }: Upl
         </div>
       </div>
 
+      {/* Formulário de upload com input de arquivo */}
       <form className="upload-form" onSubmit={handleSubmit}>
         <label className="field-label" htmlFor="documents">
           PDF, DOCX, or XLSX files
@@ -56,6 +89,7 @@ export default function UploadPanel({ errorMessage, isUploading, onUpload }: Upl
           onChange={handleFileChange}
         />
 
+        {/* Lista de arquivos selecionados ou mensagem informativa */}
         {selectedFiles.length > 0 ? (
           <ul className="file-list">
             {selectedFiles.map((file) => (
@@ -76,7 +110,9 @@ export default function UploadPanel({ errorMessage, isUploading, onUpload }: Upl
         </div>
       </form>
 
+      {/* Exibição de mensagem de erro, se houver */}
       {errorMessage !== null ? <p className="error-message">{errorMessage}</p> : null}
     </section>
   );
 }
+

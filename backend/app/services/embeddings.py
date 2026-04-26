@@ -1,62 +1,59 @@
+"""
+Geração de embeddings semânticos via sentence-transformers.
+
+Converte textos em vetores numéricos densos que capturam o significado
+semântico, permitindo busca por similaridade no banco de vetores.
+
+Usa o modelo multilingual para suportar textos em português e inglês.
+O modelo é carregado sob demanda e cacheado para reutilização.
+"""
 from __future__ import annotations
 
-from typing import Sequence
+from functools import lru_cache
 
-DEFAULT_EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-
-
-class EmbeddingModelUnavailableError(RuntimeError):
-    pass
+from app.core.config import Settings
 
 
-class EmbeddingService:
-    def __init__(self, model_name: str = DEFAULT_EMBEDDING_MODEL) -> None:
-        self.model_name = model_name
-        self._model: object | None = None
+@lru_cache(maxsize=1)
+def _get_embedding_model(model_name: str):
+    """
+    Carrega e cacheia o modelo de embeddings.
 
-    def encode(self, texts: Sequence[str]) -> list[list[float]]:
-        if not texts:
-            return []
-        model = self._load_model()
-        encode = getattr(model, "encode")
-        try:
-            embedding_array = encode(
-                list(texts),
-                normalize_embeddings=True,
-                convert_to_numpy=True,
-                show_progress_bar=False,
-            )
-        except Exception as exc:
-            raise EmbeddingModelUnavailableError(
-                f"Unable to generate embeddings with model '{self.model_name}'."
-            ) from exc
+    O cache via lru_cache garante que o modelo seja carregado
+    apenas uma vez, economizando memória e tempo de inicialização.
 
-        if hasattr(embedding_array, "tolist"):
-            raw_embeddings = embedding_array.tolist()
-        else:
-            raw_embeddings = list(embedding_array)
-        return [[float(value) for value in embedding] for embedding in raw_embeddings]
+    Args:
+        model_name: Nome do modelo no HuggingFace Hub
 
-    def embed_query(self, text: str) -> list[float]:
-        embeddings = self.encode([text])
-        return embeddings[0] if embeddings else []
+    Returns:
+        Modelo sentence-transformers carregado
+    """
+    from sentence_transformers import SentenceTransformer
+    return SentenceTransformer(model_name)
 
-    def _load_model(self) -> object:
-        if self._model is not None:
-            return self._model
 
-        try:
-            from sentence_transformers import SentenceTransformer
-        except ImportError as exc:
-            raise EmbeddingModelUnavailableError(
-                "sentence-transformers is not installed. Install the backend requirements to enable embeddings."
-            ) from exc
+def get_embeddings(texts: list[str], settings: Settings) -> list[list[float]]:
+    """
+    Gera embeddings para uma lista de textos.
 
-        try:
-            self._model = SentenceTransformer(self.model_name)
-        except Exception as exc:
-            raise EmbeddingModelUnavailableError(
-                f"Unable to load embedding model '{self.model_name}'. Verify that the model name is correct and the environment has access to it."
-            ) from exc
+    Args:
+        texts: Lista de strings para vetorizar
+        settings: Configurações com o nome do modelo de embedding
 
-        return self._model
+    Returns:
+        Lista de vetores (cada vetor é uma lista de floats)
+
+    Raises:
+        RuntimeError: Se houver erro no carregamento do modelo ou na geração
+    """
+    if not texts:
+        return []
+
+    try:
+        model = _get_embedding_model(settings.embedding_model)
+        embeddings = model.encode(texts)
+        # Converte arrays numpy para listas Python nativas
+        return [embedding.tolist() for embedding in embeddings]
+    except Exception as exc:
+        raise RuntimeError(f"Failed to generate embeddings: {exc}") from exc
+

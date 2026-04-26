@@ -1,171 +1,200 @@
+"""
+Armazenamento e busca por similaridade via ChromaDB.
+
+Implementa a camada de Vector Store do pipeline RAG:
+- Inicialização do cliente ChromaDB persistente
+- Criação/atualização de coleções
+- Inserção de documentos com embeddings e metadados
+- Busca por similaridade com filtro opcional por documento
+"""
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Protocol, Sequence, cast
-
-from app.models import DocumentChunk, DocumentType, VectorMatch
-
-
-class ChromaCollectionProtocol(Protocol):
-    def upsert(
-        self,
-        *,
-        ids: Sequence[str],
-        documents: Sequence[str],
-        metadatas: Sequence[dict[str, object]],
-        embeddings: Sequence[Sequence[float]],
-    ) -> None: ...
-
-    def query(
-        self,
-        *,
-        query_embeddings: Sequence[Sequence[float]],
-        n_results: int,
-        where: dict[str, object] | None = None,
-        include: Sequence[str] | None = None,
-    ) -> dict[str, list[list[object]]]: ...
-
-    def count(self) -> int: ...
+from app.core.config import Settings
+from app.models import DocumentChunk, VectorMatch
 
 
 class VectorStore:
-    def __init__(self, persist_directory: Path, collection_name: str) -> None:
-        self.persist_directory = persist_directory
-        self.collection_name = collection_name
-        self._client: object | None = None
-        self._collection: ChromaCollectionProtocol | None = None
-        self.persist_directory.mkdir(parents=True, exist_ok=True)
+    """
+    Wrapper thread-safe (single-threaded usage) sobre o ChromaDB.
 
-    def add_chunks(self, chunks: Sequence[DocumentChunk], embeddings: Sequence[Sequence[float]]) -> None:
+    Gerencia uma coleção nomeada onde cada entrada contém:
+    - ID único do chunk
+    - Vetor de embedding
+    - Documento original (texto)
+    - Metadados estruturados para filtragem e citação
+    """
+
+    def __init__(self, settings: Settings) -> None:
+        """
+        Inicializa o VectorStore com as configurações da aplicação.
+
+        Args:
+            settings: Configurações com caminho do ChromaDB e nome da coleção
+        """
+        self.settings = settings
+        self._client = None
+        self._collection = None
+
+    def _get_client(self):
+        """
+        Lazy-loading do cliente ChromaDB.
+
+        O cliente só é criado na primeira operação, evitando
+        inicialização custosa durante a importação do módulo.
+
+        Returns:
+            Cliente ChromaDB persistente
+        """
+        if self._client is None:
+            import chromadb
+            self._client = chromadb.PersistentClient(path=str(self.settings.chroma_dir))
+        return self._client
+
+    def _get_collection(self):
+        """
+        Lazy-loading da coleção ChromaDB.
+
+        Cria a coleção se não existir, ou recupera a existente.
+
+        Returns:
+            Coleção ChromaDB para operações de CRUD e busca
+        """
+        if self._collection is None:
+            client = self._get_client()
+            self._collection = client.get_or_create_collection(
+                name=self.settings.chroma_collection_name,
+                metadata={"hnsw:space": "cosine"},
+            )
+        return self._collection
+
+    def add_chunks(self, chunks: list[DocumentChunk], embeddings: list[list[float]]) -> int:
+        """
+        Adiciona chunks e seus embeddings à coleção vetorial.
+
+        Args:
+            chunks: Lista de chunks com metadados
+            embeddings: Lista de vetores correspondentes
+
+        Returns:
+            Número de chunks inseridos
+
+        Raises:
+            ValueError: Se as listas tiverem comprimentos diferentes
+            RuntimeError: Se houver erro na comunicação com o ChromaDB
+        """
         if len(chunks) != len(embeddings):
-            raise ValueError("The number of chunks must match the number of embeddings.")
+            raise ValueError("Chunks and embeddings must have the same length.")
+
         if not chunks:
-            return
+            return 0
 
         collection = self._get_collection()
-        ids = [self._chunk_id(chunk) for chunk in chunks]
-        documents = [chunk.text for chunk in chunks]
-        metadatas = [self._metadata_from_chunk(chunk) for chunk in chunks]
-        collection.upsert(ids=ids, documents=documents, metadatas=metadatas, embeddings=embeddings)
 
-    def query(
+        ids = [f"{chunk.document_id}_{chunk.section_index}_{chunk.chunk_index}" for chunk in chunks]
+        documents = [chunk.text for chunk in chunks]
+        metadatas = []
+        for chunk in chunks:
+            metadata: dict[str, str | int | float | bool] = {
+                "document_id": chunk.document_id,
+                "filename": chunk.filename,
+                "mime_type": chunk.mime_type,
+                "document_type": chunk.document_type.value,
+                "chunk_index": chunk.chunk_index,
+                "section_index": chunk.section_index,
+            }
+            # Adiciona campos opcionais apenas quando presentes
+            # ChromaDB não aceita None em metadados
+            if chunk.page is not None:
+                metadata["page"] = chunk.page
+            if chunk.sheet is not None:
+                metadata["sheet"] = chunk.sheet
+            if chunk.row_start is not None:
+                metadata["row_start"] = chunk.row_start
+            if chunk.row_end is not None:
+                metadata["row_end"] = chunk.row_end
+            metadatas.append(metadata)
+
+        try:
+            collection.add(
+                ids=ids,
+                embeddings=embeddings,
+                documents=documents,
+                metadatas=metadatas,
+            )
+        except Exception as exc:
+            raise RuntimeError(f"Failed to add chunks to vector store: {exc}") from exc
+
+        return len(chunks)
+
+    def search(
         self,
-        query_embedding: Sequence[float],
+        query_embedding: list[float],
         top_k: int,
         document_id: str | None = None,
     ) -> list[VectorMatch]:
+        """
+        Busca os chunks mais similares a um vetor de consulta.
+
+        Args:
+            query_embedding: Vetor da pergunta do usuário
+            top_k: Número máximo de resultados
+            document_id: Se fornecido, filtra resultados para este documento
+
+        Returns:
+            Lista de VectorMatch ordenada por relevância (maior score primeiro)
+
+        Raises:
+            RuntimeError: Se houver erro na comunicação com o ChromaDB
+        """
         collection = self._get_collection()
-        if collection.count() == 0:
-            return []
 
-        where = {"document_id": document_id} if document_id else None
-        result = collection.query(
-            query_embeddings=[list(query_embedding)],
-            n_results=top_k,
-            where=where,
-            include=["documents", "metadatas", "distances"],
-        )
+        # Prepara filtro de metadados se document_id foi especificado
+        where_filter = None
+        if document_id is not None:
+            where_filter = {"document_id": document_id}
 
-        documents = self._extract_nested(result, "documents")
-        metadatas = self._extract_nested(result, "metadatas")
-        distances = self._extract_nested(result, "distances")
+        try:
+            results = collection.query(
+                query_embeddings=[query_embedding],
+                n_results=top_k,
+                where=where_filter,
+                include=["documents", "metadatas", "distances"],
+            )
+        except Exception as exc:
+            raise RuntimeError(f"Failed to query vector store: {exc}") from exc
 
         matches: list[VectorMatch] = []
-        for document_text, metadata_value, distance_value in zip(documents, metadatas, distances):
-            metadata = metadata_value if isinstance(metadata_value, dict) else {}
-            try:
-                distance = float(distance_value)
-            except (TypeError, ValueError):
-                distance = 1.0
-            score = max(0.0, 1.0 - distance)
+
+        # results contém listas de listas (uma por query, mas só temos uma)
+        ids_list = results.get("ids", [[]])[0]
+        documents_list = results.get("documents", [[]])[0]
+        metadatas_list = results.get("metadatas", [[]])[0]
+        distances_list = results.get("distances", [[]])[0]
+
+        for idx, document_id_result in enumerate(ids_list):
+            metadata = metadatas_list[idx] if idx < len(metadatas_list) else {}
+            distance = distances_list[idx] if idx < len(distances_list) else 1.0
+
+            # Converte distância coseno para score de similaridade (0-1)
+            score = 1.0 - float(distance)
+
             matches.append(
                 VectorMatch(
-                    document_id=str(metadata.get("document_id", "")),
-                    filename=str(metadata.get("filename", "")),
-                    mime_type=str(metadata.get("mime_type", "")),
-                    document_type=self._parse_document_type(metadata.get("document_type")),
-                    text=str(document_text or ""),
-                    chunk_index=self._parse_int(metadata.get("chunk_index"), default=0),
+                    document_id=metadata.get("document_id", ""),
+                    filename=metadata.get("filename", ""),
+                    mime_type=metadata.get("mime_type", ""),
+                    document_type=metadata.get("document_type", "unknown"),
+                    text=documents_list[idx] if idx < len(documents_list) else "",
+                    chunk_index=metadata.get("chunk_index", 0),
                     score=score,
-                    page=self._optional_int(metadata.get("page")),
-                    sheet=self._optional_str(metadata.get("sheet")),
-                    row_start=self._optional_int(metadata.get("row_start")),
-                    row_end=self._optional_int(metadata.get("row_end")),
+                    page=metadata.get("page"),
+                    sheet=metadata.get("sheet"),
+                    row_start=metadata.get("row_start"),
+                    row_end=metadata.get("row_end"),
                 )
             )
 
+        # Ordena por score decrescente
+        matches.sort(key=lambda match: match.score, reverse=True)
         return matches
 
-    def _get_collection(self) -> ChromaCollectionProtocol:
-        if self._collection is not None:
-            return self._collection
-
-        try:
-            import chromadb
-        except ImportError as exc:
-            raise RuntimeError("chromadb is required to use the vector store.") from exc
-
-        if self._client is None:
-            self._client = chromadb.PersistentClient(path=str(self.persist_directory))
-
-        client = cast(object, self._client)
-        self._collection = client.get_or_create_collection(  # type: ignore[attr-defined]
-            name=self.collection_name,
-            metadata={"hnsw:space": "cosine"},
-        )
-        return self._collection
-
-    def _chunk_id(self, chunk: DocumentChunk) -> str:
-        return f"{chunk.document_id}:{chunk.chunk_index:06d}"
-
-    def _metadata_from_chunk(self, chunk: DocumentChunk) -> dict[str, object]:
-        return {
-            "document_id": chunk.document_id,
-            "filename": chunk.filename,
-            "mime_type": chunk.mime_type,
-            "document_type": chunk.document_type.value,
-            "chunk_index": chunk.chunk_index,
-            "section_index": chunk.section_index,
-            "page": chunk.page if chunk.page is not None else -1,
-            "sheet": chunk.sheet or "",
-            "row_start": chunk.row_start if chunk.row_start is not None else -1,
-            "row_end": chunk.row_end if chunk.row_end is not None else -1,
-        }
-
-    def _extract_nested(self, payload: dict[str, list[list[object]]], key: str) -> list[object]:
-        value = payload.get(key, [])
-        if not value:
-            return []
-        first = value[0]
-        if isinstance(first, list):
-            return list(first)
-        return list(value)
-
-    def _optional_int(self, value: object) -> int | None:
-        try:
-            integer = int(value)
-        except (TypeError, ValueError):
-            return None
-        return integer if integer >= 0 else None
-
-    def _optional_str(self, value: object) -> str | None:
-        if isinstance(value, str):
-            stripped = value.strip()
-            return stripped or None
-        return None
-
-    def _parse_int(self, value: object, default: int) -> int:
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return default
-
-    def _parse_document_type(self, value: object) -> DocumentType:
-        if isinstance(value, DocumentType):
-            return value
-        if isinstance(value, str):
-            try:
-                return DocumentType(value)
-            except ValueError:
-                return DocumentType.unknown
-        return DocumentType.unknown

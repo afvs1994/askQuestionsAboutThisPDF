@@ -1,3 +1,20 @@
+/**
+ * Folha de estilos global da aplicação RAG.
+ *
+ * Define o design system visual da interface, incluindo:
+ * - Tipografia e cores base
+ * - Layout responsivo (mobile-first com breakpoints)
+ * - Estilos de componentes reutilizáveis (painéis, botões, formulários)
+ * - Estados de interação (hover, focus, disabled)
+ *
+ * A paleta de cores utiliza tons de índigo/roxo como cor primária,
+ * com fundo em gradiente suave para criar profundidade visual.
+ */
+
+/* ============================================
+   VARIÁVEIS E ESTILOS BASE
+   ============================================ */
+
 :root {
   color-scheme: light;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -11,10 +28,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Reset de box-sizing para todos os elementos */
 * {
   box-sizing: border-box;
 }
 
+/* Garante altura mínima de 100% para html, body e root */
 html,
 body,
 #root {
@@ -27,6 +46,7 @@ body {
   background: transparent;
 }
 
+/* Herança de fonte para elementos de formulário */
 button,
 input,
 select,
@@ -38,6 +58,7 @@ button {
   cursor: pointer;
 }
 
+/* Estado disabled para elementos interativos */
 button:disabled,
 input:disabled,
 select:disabled,
@@ -50,12 +71,18 @@ textarea:disabled {
   width: 100%;
 }
 
+/* ============================================
+   LAYOUT PRINCIPAL
+   ============================================ */
+
+/** Container principal da aplicação com largura máxima e centralização */
 .app-shell {
   width: min(1200px, calc(100% - 2rem));
   margin: 0 auto;
   padding: 2rem 0 3rem;
 }
 
+/** Cabeçalho com título e descrição */
 .app-header {
   display: flex;
   flex-direction: column;
@@ -76,6 +103,7 @@ textarea:disabled {
   color: #475569;
 }
 
+/** Rótulo de seção em caixa alta (eyebrow) */
 .eyebrow {
   margin: 0 0 0.35rem;
   font-size: 0.78rem;
@@ -85,16 +113,23 @@ textarea:disabled {
   color: #6366f1;
 }
 
+/** Grid principal da aplicação (colunas em desktop) */
 .app-grid {
   display: grid;
   gap: 1rem;
 }
 
+/** Pilha vertical de componentes dentro de cada coluna */
 .column-stack {
   display: grid;
   gap: 1rem;
 }
 
+/* ============================================
+   COMPONENTES REUTILIZÁVEIS
+   ============================================ */
+
+/** Painel/card com fundo translúcido e sombra suave */
 .panel {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -104,6 +139,7 @@ textarea:disabled {
   backdrop-filter: blur(10px);
 }
 
+/** Cabeçalho de painel com título e ações */
 .panel-header {
   display: flex;
   align-items: flex-start;
@@ -117,6 +153,7 @@ textarea:disabled {
   font-size: 1.15rem;
 }
 
+/** Rótulo do escopo de busca no painel de chat */
 .scope-label {
   margin: 0;
   color: #475569;
@@ -124,6 +161,7 @@ textarea:disabled {
   text-align: right;
 }
 
+/** Label de campo de formulário */
 .field-label {
   display: block;
   margin-bottom: 0.5rem;
@@ -131,6 +169,11 @@ textarea:disabled {
   color: #0f172a;
 }
 
+/* ============================================
+   FORMULÁRIOS E INPUTS
+   ============================================ */
+
+/** Estilo base para inputs, selects e textareas */
 .file-input,
 .select,
 .textarea {
@@ -143,6 +186,7 @@ textarea:disabled {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+/** Estado de foco com anel de destaque em índigo */
 .file-input:focus,
 .select:focus,
 .textarea:focus {
@@ -151,17 +195,24 @@ textarea:disabled {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+/** Textarea com redimensionamento vertical */
 .textarea {
   resize: vertical;
   min-height: 120px;
 }
 
+/** Linha de ações alinhada à direita */
 .actions-row {
   display: flex;
   justify-content: flex-end;
   margin-top: 0.9rem;
 }
 
+/* ============================================
+   BOTÕES
+   ============================================ */
+
+/** Botão primário com gradiente índigo-roxo */
 .primary-button {
   border: none;
   border-radius: 0.85rem;
@@ -180,11 +231,17 @@ textarea:disabled {
   transform: translateY(1px);
 }
 
+/* ============================================
+   ESTADOS DE TEXTO
+   ============================================ */
+
+/** Texto secundário/desabilitado */
 .muted-text {
   margin: 0.75rem 0 0;
   color: #64748b;
 }
 
+/** Mensagem de erro com fundo vermelho claro */
 .error-message {
   margin: 0.75rem 0 0;
   color: #b91c1c;
@@ -194,12 +251,21 @@ textarea:disabled {
   padding: 0.75rem 0.9rem;
 }
 
+/* ============================================
+   FORMULÁRIOS ESPECÍFICOS
+   ============================================ */
+
 .upload-form,
 .chat-form {
   display: grid;
   gap: 0.75rem;
 }
 
+/* ============================================
+   LISTAS
+   ============================================ */
+
+/** Reset de lista para componentes de UI */
 .file-list,
 .source-list,
 .document-summary-list {
@@ -208,6 +274,7 @@ textarea:disabled {
   margin: 0.9rem 0 0;
 }
 
+/** Lista de arquivos selecionados para upload */
 .file-list {
   display: grid;
   gap: 0.5rem;
@@ -224,6 +291,7 @@ textarea:disabled {
   border: 1px solid #e2e8f0;
 }
 
+/** Nome do arquivo e metadados */
 .file-name,
 .document-summary-main h3 {
   margin: 0;
@@ -239,6 +307,10 @@ textarea:disabled {
   font-size: 0.84rem;
   white-space: nowrap;
 }
+
+/* ============================================
+   LISTA DE DOCUMENTOS INDEXADOS
+   ============================================ */
 
 .document-summary-list {
   display: grid;
@@ -266,6 +338,10 @@ textarea:disabled {
   font-size: 0.88rem;
 }
 
+/* ============================================
+   CARD DE RESPOSTA DO CHAT
+   ============================================ */
+
 .answer-card {
   margin-top: 1rem;
   padding: 1rem;
@@ -283,17 +359,23 @@ textarea:disabled {
   font-size: 1rem;
 }
 
+/** Preserva quebras de linha na resposta do assistente */
 .answer-text {
   margin: 0;
   white-space: pre-wrap;
   color: #0f172a;
 }
 
+/* ============================================
+   LISTA DE FONTES/CITAÇÕES
+   ============================================ */
+
 .source-list {
   display: grid;
   gap: 0.75rem;
 }
 
+/** Card individual de uma fonte */
 .source-card {
   padding: 0.9rem;
   border-radius: 0.9rem;
@@ -314,6 +396,7 @@ textarea:disabled {
   color: #0f172a;
 }
 
+/** Badge com o score de similaridade */
 .score-pill {
   display: inline-flex;
   align-items: center;
@@ -331,12 +414,18 @@ textarea:disabled {
   font-size: 0.88rem;
 }
 
+/** Preserva formatação do trecho original */
 .source-excerpt {
   margin: 0;
   color: #0f172a;
   white-space: pre-wrap;
 }
 
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+/** Desktop: layout em duas colunas */
 @media (min-width: 960px) {
   .app-grid {
     grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
@@ -354,6 +443,7 @@ textarea:disabled {
   }
 }
 
+/** Mobile: ajustes de padding e empilhamento */
 @media (max-width: 640px) {
   .app-shell {
     width: min(100% - 1rem, 1200px);
@@ -380,3 +470,4 @@ textarea:disabled {
     align-items: flex-start;
   }
 }
+

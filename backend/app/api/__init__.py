@@ -1,3 +1,9 @@
-from app.api.router import router
+"""
+Pacote de endpoints da API REST.
 
-__all__ = ["router"]
+Contém os roteadores que definem os endpoints da aplicação:
+- /health: Verificação de saúde do serviço
+- /api/documents: Gestão de documentos (listar, upload)
+- /api/chat: Interação com o assistente RAG
+"""
+
