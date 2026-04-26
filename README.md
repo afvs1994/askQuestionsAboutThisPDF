@@ -123,7 +123,28 @@ askQuestionsAboutThisPDF/
 ollama run llama3.1
 ```
 
-### 2. Backend (Python)
+> **Nota para Windows:** o Ollama pode não estar automaticamente no `PATH` do sistema. Se o comando `ollama` não for reconhecido, use o caminho completo:
+> ```powershell
+> C:\Users\<seu-usuario>\AppData\Local\Programs\Ollama\ollama.exe run llama3.1
+> ```
+> Além disso, o **servidor** Ollama precisa estar em execução (porta 11434). O ícone da bandeja (`ollama app.exe`) sozinho não basta. Inicie o servidor com:
+> ```powershell
+> ollama serve
+> ```
+
+### 2. Iniciar tudo de uma vez (Windows)
+
+Para conveniência, existe um script batch que verifica o Ollama e sobe backend + frontend automaticamente:
+
+```batch
+start_app.bat
+```
+
+Isso abrirá duas janelas de terminal:
+- **Backend** em `http://localhost:8000`
+- **Frontend** em `http://localhost:5173`
+
+### 3. Backend manualmente (Python)
 
 ```bash
 cd backend
@@ -142,7 +163,7 @@ uvicorn app.main:app --reload --port 8000
 
 O backend estará disponível em `http://localhost:8000`.
 
-### 3. Frontend (React)
+### 4. Frontend manualmente (React)
 
 ```bash
 cd frontend
@@ -198,6 +219,36 @@ CHUNK_OVERLAP_SENTENCES=1
 # Número de resultados na busca vetorial
 TOP_K_DEFAULT=5
 ```
+
+> **Atenção (Windows):** dependendo da versão do `pydantic-settings`, campos do tipo `list[str]` (como `CORS_ORIGINS`) podem causar erro de `JSONDecodeError` ao serem lidos do `.env`. Se isso ocorrer, renomeie ou remova o `.env` — o backend usará os valores padrão do código. Alternativamente, o `config.py` já foi ajustado com `env_parse_json=False` para evitar esse problema.
+
+---
+
+## Troubleshooting
+
+### Ollama não está no PATH (Windows)
+Se o comando `ollama` não for reconhecido, o executável provavelmente está em:
+```
+C:\Users\<seu-usuario>\AppData\Local\Programs\Ollama\ollama.exe
+```
+Use o caminho completo ou adicione essa pasta às variáveis de ambiente do sistema.
+
+### Servidor Ollama não responde
+O ícone do Ollama na bandeja do Windows (`ollama app.exe`) não significa que o **servidor** está ativo. Verifique se a porta 11434 está aberta:
+```powershell
+netstat -ano | findstr 11434
+```
+Se não aparecer nada, inicie o servidor manualmente:
+```powershell
+ollama serve
+```
+
+### Erro `JSONDecodeError` ao iniciar o backend
+Se o backend crashar com erro no `pydantic_settings` ao ler o `.env`, o problema é o parsing automático de JSON em campos de lista. A solução já foi aplicada no `config.py` (`env_parse_json=False`). Como alternativa imediata, renomeie o arquivo:
+```powershell
+Rename-Item backend\.env backend\.env.bak
+```
+O sistema funcionará com os valores padrão definidos no código.
 
 ---
 
