@@ -67,7 +67,7 @@ export default function ChatPanel({
           <p className="eyebrow">Chat</p>
           <h2>Faça uma pergunta</h2>
         </div>
-        <p className="scope-label">Scope: {scopeLabel}</p>
+        <p className="scope-label">Escopo: {scopeLabel}</p>
       </div>
 
       {/* Formulário de entrada da pergunta */}
