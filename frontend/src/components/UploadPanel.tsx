@@ -69,15 +69,15 @@ export default function UploadPanel({ errorMessage, isUploading, onUpload }: Upl
     <section className="panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">Ingest</p>
-          <h2>Upload documents</h2>
+          <p className="eyebrow">Carregador</p>
+          <h2>Documentos carregados</h2>
         </div>
       </div>
 
       {/* Formulário de upload com input de arquivo */}
       <form className="upload-form" onSubmit={handleSubmit}>
         <label className="field-label" htmlFor="documents">
-          PDF, DOCX, or XLSX files
+          Arquivos PDF ou DOCX
         </label>
         <input
           ref={fileInputRef}
@@ -100,7 +100,7 @@ export default function UploadPanel({ errorMessage, isUploading, onUpload }: Upl
             ))}
           </ul>
         ) : (
-          <p className="muted-text">Choose one or more files to add them to the knowledge base.</p>
+          <p className="muted-text">Escolha um ou mais arquivos para adicionar à base de conhecimento.</p>
         )}
 
         <div className="actions-row">

@@ -336,6 +336,6 @@ export async function submitChat(request: ChatRequest): Promise<ChatResponse> {
  * @returns String descritiva do escopo de busca
  */
 export function formatDocumentScope(document: DocumentSummary | undefined): string {
-  return document === undefined ? 'Entire repository' : document.filename;
+  return document === undefined ? 'Todo o repositório' : document.filename;
 }
 

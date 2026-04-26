@@ -65,7 +65,7 @@ export default function ChatPanel({
       <div className="panel-header">
         <div>
           <p className="eyebrow">Chat</p>
-          <h2>Ask a question</h2>
+          <h2>Faça uma pergunta</h2>
         </div>
         <p className="scope-label">Scope: {scopeLabel}</p>
       </div>
@@ -73,7 +73,7 @@ export default function ChatPanel({
       {/* Formulário de entrada da pergunta */}
       <form className="chat-form" onSubmit={handleSubmit}>
         <label className="field-label" htmlFor="question">
-          Question
+          Pergunta
         </label>
         <textarea
           id="question"
@@ -81,12 +81,12 @@ export default function ChatPanel({
           rows={5}
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
-          placeholder="Ask about the uploaded documents..."
+          placeholder="Pergunte sobre os documentos carregados..."
         />
 
         <div className="actions-row">
           <button className="primary-button" type="submit" disabled={isLoading || question.trim().length === 0}>
-            {isLoading ? 'Searching...' : 'Ask question'}
+            {isLoading ? 'Buscando..' : 'Faça uma pergunta'}
           </button>
         </div>
       </form>
@@ -97,14 +97,14 @@ export default function ChatPanel({
       {/* Card de exibição da resposta do assistente */}
       <div className="answer-card">
         <div className="answer-card-header">
-          <h3>Answer</h3>
+          <h3>Resposta</h3>
         </div>
         {isLoading ? (
-          <p className="muted-text">Searching the repository for cited answers...</p>
+          <p className="muted-text">Buscando no repositório pelas respostas citadas, Isso pode demorar um pouco...</p>
         ) : answer.trim().length > 0 ? (
           <p className="answer-text">{answer}</p>
         ) : (
-          <p className="muted-text">No answer yet. Ask a question to get started.</p>
+          <p className="muted-text">Sem respostas ainda. Faça uma pergunta para começar.</p>
         )}
       </div>
     </section>

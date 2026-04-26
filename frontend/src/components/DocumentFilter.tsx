@@ -37,7 +37,7 @@ export default function DocumentFilter({
     <section className="panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">Repository</p>
+          <p className="eyebrow">Repositório</p>
           <h2>Document filter</h2>
         </div>
       </div>
@@ -63,9 +63,9 @@ export default function DocumentFilter({
 
       {/* Mensagem informativa sobre o estado atual */}
       {isLoading ? (
-        <p className="muted-text">Loading available documents...</p>
+        <p className="muted-text">Carregando documentos disponíveis...</p>
       ) : documents.length === 0 ? (
-        <p className="muted-text">Upload documents to limit answers to a single file.</p>
+        <p className="muted-text">Carregue documentos para limitar respostas a um único arquivo.</p>
       ) : (
         <p className="muted-text">{documents.length} indexed document{documents.length === 1 ? '' : 's'} available.</p>
       )}

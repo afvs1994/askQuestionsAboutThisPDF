@@ -92,7 +92,7 @@ export default function App() {
       const fetchedDocuments = await fetchDocuments();
       setDocuments(fetchedDocuments);
     } catch (error) {
-      setDocumentsError(getErrorMessage(error, 'Unable to load documents.'));
+      setDocumentsError(getErrorMessage(error, 'Falha ao carregar os documentos.'));
     } finally {
       setIsDocumentsLoading(false);
     }
@@ -132,7 +132,7 @@ export default function App() {
       await uploadDocuments(files);
       await refreshDocuments();
     } catch (error) {
-      const message = getErrorMessage(error, 'Failed to upload documents.');
+      const message = getErrorMessage(error, 'Falha ao carregar os documentos.');
       setUploadError(message);
       throw error;
     } finally {
@@ -160,11 +160,11 @@ export default function App() {
       });
 
       setChatAnswer(
-        response.answer.length > 0 ? response.answer : 'No answer was returned for this question.'
+        response.answer.length > 0 ? response.answer : 'Nenhuma respota foi retornada pra esta pergunta.'
       );
       setChatSources(response.sources);
     } catch (error) {
-      const message = getErrorMessage(error, 'Failed to submit question.');
+      const message = getErrorMessage(error, 'Falha em submeter a pergunta.');
       setChatError(message);
       throw error;
     } finally {
@@ -177,12 +177,11 @@ export default function App() {
       {/* Cabeçalho da aplicação com título e descrição */}
       <header className="app-header">
         <div>
-          <p className="eyebrow">Private document RAG assistant</p>
-          <h1>Ask questions across your uploaded documents</h1>
+          <p className="eyebrow">Assistente conversacional baseado em RAG (Retrieval-Augmented Generation)</p>
+          <h1>Faça perguntas sobre os documentos carregados</h1>
         </div>
         <p className="app-description">
-          Upload PDFs, DOCX files, or spreadsheets, then ask questions with cited answers from the indexed
-          content.
+          Carregue arquivos PDF ou DOCX, faça perguntas e receba respostas com citações do conteúdo indexado.
         </p>
       </header>
 
@@ -195,15 +194,15 @@ export default function App() {
           <section className="panel">
             <div className="panel-header">
               <div>
-                <p className="eyebrow">Repository</p>
-                <h2>Indexed documents</h2>
+                <p className="eyebrow">Repositório</p>
+                <h2>Documentos indexados</h2>
               </div>
             </div>
 
             {documentsError !== null ? <p className="error-message">{documentsError}</p> : null}
             {isDocumentsLoading ? <p className="muted-text">Loading document library...</p> : null}
             {!isDocumentsLoading && documents.length === 0 && documentsError === null ? (
-              <p className="muted-text">No documents are indexed yet. Upload a file to begin.</p>
+              <p className="muted-text">Nenhum documento indexado ainda. Carregue um arquivo para iniciar.</p>
             ) : null}
             {documents.length > 0 ? (
               <ul className="document-summary-list">

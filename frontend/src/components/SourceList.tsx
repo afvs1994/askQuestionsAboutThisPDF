@@ -58,14 +58,14 @@ export default function SourceList({ sources }: SourceListProps) {
     <section className="panel">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">Citations</p>
-          <h2>Source list</h2>
+          <p className="eyebrow">Citações</p>
+          <h2>Lista de fontes</h2>
         </div>
       </div>
 
       {/* Estado vazio: nenhuma pergunta foi feita ainda */}
       {sources.length === 0 ? (
-        <p className="muted-text">Citations will appear here after you ask a question.</p>
+        <p className="muted-text">Citações aparecerão aqui após formulada a pergunta.</p>
       ) : (
         <ol className="source-list">
           {sources.map((source, index) => {
