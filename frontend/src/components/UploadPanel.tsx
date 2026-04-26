@@ -105,7 +105,7 @@ export default function UploadPanel({ errorMessage, isUploading, onUpload }: Upl
 
         <div className="actions-row">
           <button className="primary-button" type="submit" disabled={isUploading || selectedFiles.length === 0}>
-            {isUploading ? 'Uploading...' : 'Upload files'}
+            {isUploading ? 'Carregando..' : 'Carregue arquivos'}
           </button>
         </div>
       </form>
