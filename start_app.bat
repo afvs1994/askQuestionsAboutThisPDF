@@ -74,13 +74,13 @@ REM Adiciona Node.js local ao PATH (funciona neste projeto)
 set "PATH=%SCRIPT_DIR%\nodejs;%PATH%"
 
 REM Verifica se npm esta disponivel
-npm --version >nul 2>&1
-if errorlevel 1 (
-    echo [ERRO] npm nao encontrado!
-    echo [ERRO] Verifique se o Node.js esta em: %SCRIPT_DIR%\nodejs
-    pause
-    exit /b 1
-)
+REM npm --version >nul 2>&1
+REM if errorlevel 1 (
+REM    echo [ERRO] npm nao encontrado!
+REM    echo [ERRO] Verifique se o Node.js esta em: %SCRIPT_DIR%\nodejs
+REM    pause
+REM    exit /b 1
+REM)
 
 start "Frontend" cmd /k "npm run dev"
 echo [OK] Frontend iniciado em http://localhost:5173

@@ -100,7 +100,7 @@ export default function ChatPanel({
           <h3>Resposta</h3>
         </div>
         {isLoading ? (
-          <p className="muted-text">Buscando no repositório pelas respostas citadas, Isso pode demorar um pouco...</p>
+          <p className="muted-text">Buscando no repositório pelas respostas citadas. Isso pode demorar um pouco...</p>
         ) : answer.trim().length > 0 ? (
           <p className="answer-text">{answer}</p>
         ) : (
