@@ -38,13 +38,13 @@ export default function DocumentFilter({
       <div className="panel-header">
         <div>
           <p className="eyebrow">Repositório</p>
-          <h2>Document filter</h2>
+          <h2>Filtro de documentos</h2>
         </div>
       </div>
 
       {/* Label e dropdown de seleção de escopo */}
       <label className="field-label" htmlFor="document-filter">
-        Search scope
+        Procure o escopo
       </label>
       <select
         id="document-filter"
@@ -53,7 +53,7 @@ export default function DocumentFilter({
         onChange={(event) => onChange(event.target.value)}
         disabled={isLoading || documents.length === 0}
       >
-        <option value="">All repository documents</option>
+        <option value="">Todos os documentos do repositório</option>
         {documents.map((document) => (
           <option key={document.id} value={document.id}>
             {document.filename} ({document.chunk_count} chunks)
@@ -67,7 +67,7 @@ export default function DocumentFilter({
       ) : documents.length === 0 ? (
         <p className="muted-text">Carregue documentos para limitar respostas a um único arquivo.</p>
       ) : (
-        <p className="muted-text">{documents.length} indexed document{documents.length === 1 ? '' : 's'} available.</p>
+        <p className="muted-text">{documents.length} indexados documento{documents.length === 1 ? '' : 's'} disponíve{documents.length === 1 ? 'l' : 'is'}.</p>
       )}
     </section>
   );
