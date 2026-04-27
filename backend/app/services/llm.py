@@ -44,20 +44,20 @@ def generate_answer(prompt: str, settings: Settings) -> str:
             data = response.json()
     except httpx.ConnectError as exc:
         raise RuntimeError(
-            f"Cannot connect to Ollama at {settings.ollama_base_url}. "
-            "Make sure Ollama is running and the model is pulled."
+            f"Não é possível conectar-se ao Ollama {settings.ollama_base_url}. "
+            "Verifique se o Ollama está rodando e modelo foi solicitado."
         ) from exc
     except httpx.TimeoutException as exc:
         raise RuntimeError(
-            f"Ollama request timed out after {settings.ollama_timeout_seconds}s."
+            f"O Ollama não conseguiu retornar uma resposta após {settings.ollama_timeout_seconds}s."
         ) from exc
     except Exception as exc:
-        raise RuntimeError(f"Ollama request failed: {exc}") from exc
+        raise RuntimeError(f"O Ollama falhou ao processar a solicitação: {exc}") from exc
 
     # Extrai a resposta do campo "response" do formato Ollama
     answer = data.get("response", "").strip()
     if not answer:
-        raise RuntimeError("Ollama returned an empty response.")
+        raise RuntimeError("O Ollama retornou uma resposta vazia.")
 
     return answer
 
