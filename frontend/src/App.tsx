@@ -209,7 +209,7 @@ export default function App() {
                 {documents.map((document) => (
                   <li className="document-summary-item" key={document.id}>
                     <div className="document-summary-main">
-                      <h3>{document.filename}</h3>
+                      <h6>{document.filename}</h6>
                       <p>
                         {document.document_type} · {document.chunk_count} chunks
                       </p>

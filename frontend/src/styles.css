@@ -1,453 +1,460 @@
 /**
  * Folha de estilos global da aplicação RAG.
- *
- * Define o design system visual da interface, incluindo:
- * - Tipografia e cores base
- * - Layout responsivo (mobile-first com breakpoints)
- * - Estilos de componentes reutilizáveis (painéis, botões, formulários)
- * - Estados de interação (hover, focus, disabled)
- *
- * A paleta de cores utiliza tons de índigo/roxo como cor primária,
- * com fundo em gradiente suave para criar profundidade visual.
+ * Arquitetura baseada em Design Tokens, CSS Nesting nativo e Propriedades Lógicas.
  */
 
 /* ============================================
-   VARIÁVEIS E ESTILOS BASE
+   TOKENS DO DESIGN SYSTEM (A FONTE DA VERDADE)
    ============================================ */
 
 :root {
+  /* Paleta HSL para manipulação recursiva (permitindo calc de opacidade/luz) */
+  --hue-primary: 243;
+  --hue-error: 0;
+  
+  /* Cores Base */
+  --color-text-main: hsl(222, 47%, 11%); /* #0f172a */
+  --color-text-muted: hsl(215, 16%, 47%); /* #475569 */
+  --color-text-light: hsl(215, 16%, 55%); /* #64748b */
+  --color-bg-body: linear-gradient(180deg, hsl(210, 33%, 98%) 0%, hsl(226, 64%, 94%) 100%);
+  --color-surface: rgba(255, 255, 255, 0.92);
+  --color-border: hsl(214, 32%, 91%); /* #e2e8f0 */
+  --color-border-input: hsl(214, 32%, 85%); /* #cbd5e1 */
+  
+  /* Cores Primárias (Índigo) */
+  --color-primary: hsl(var(--hue-primary), 85%, 60%);
+  --color-primary-dark: hsl(var(--hue-primary), 85%, 50%);
+  --color-primary-bg: hsl(var(--hue-primary), 85%, 96%); /* #e0e7ff */
+  --gradient-primary: linear-gradient(135deg, hsl(243, 80%, 59%), hsl(262, 83%, 58%));
+  
+  /* Cores de Feedback (Erro) */
+  --color-error: hsl(var(--hue-error), 72%, 42%);
+  --color-error-bg: hsl(var(--hue-error), 100%, 97%);
+  --color-error-border: hsl(var(--hue-error), 93%, 88%);
+
+  /* Escala de Espaçamento Recursiva */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  /* Escala de Raios (Border Radius) */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.85rem;
+  --radius-lg: 1rem;
+
+  /* Tipografia */
+  --font-base: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --transition-base: 0.15s ease;
+  
+  /* Configurações Globais */
   color-scheme: light;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-base);
   line-height: 1.5;
-  font-weight: 400;
-  color: #0f172a;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  color: var(--color-text-main);
+  background: var(--color-bg-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Reset de box-sizing para todos os elementos */
-* {
+/* ============================================
+   RESET & FOUNDATION
+   ============================================ */
+
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
-/* Garante altura mínima de 100% para html, body e root */
-html,
-body,
-#root {
-  min-height: 100%;
+html, body, #root {
+  min-block-size: 100%; /* Propriedade Lógica (Substitui min-height) */
 }
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-inline-size: 320px; /* Propriedade Lógica (Substitui min-width) */
   background: transparent;
 }
 
-/* Herança de fonte para elementos de formulário */
-button,
-input,
-select,
-textarea {
+button, input, select, textarea {
   font: inherit;
 }
 
 button {
   cursor: pointer;
-}
-
-/* Estado disabled para elementos interativos */
-button:disabled,
-input:disabled,
-select:disabled,
-textarea:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-#root {
-  width: 100%;
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
 }
 
 /* ============================================
    LAYOUT PRINCIPAL
    ============================================ */
 
-/** Container principal da aplicação com largura máxima e centralização */
 .app-shell {
-  width: min(1200px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: 2rem 0 3rem;
+  inline-size: min(1200px, calc(100% - var(--space-6)));
+  margin-inline: auto;
+  padding-block: var(--space-6) 3rem;
 }
 
-/** Cabeçalho com título e descrição */
 .app-header {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: var(--space-3);
+  margin-block-end: var(--space-5);
+
+  & h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+  }
+
+  & .app-description {
+    margin: 0;
+    max-inline-size: 64ch;
+    color: var(--color-text-muted);
+  }
 }
 
-.app-header h1 {
-  margin: 0;
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  line-height: 1.1;
-  letter-spacing: -0.04em;
-}
-
-.app-description {
-  margin: 0;
-  max-width: 64ch;
-  color: #475569;
-}
-
-/** Rótulo de seção em caixa alta (eyebrow) */
 .eyebrow {
-  margin: 0 0 0.35rem;
+  margin-block: 0 0.35rem;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
-/** Grid principal da aplicação (colunas em desktop) */
 .app-grid {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
-/** Pilha vertical de componentes dentro de cada coluna */
 .column-stack {
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: auto;        /* Garante que a coluna cresça com o conteúdo */
+  min-height: 0;       /* Evita quebras em grids complexos */
 }
 
 /* ============================================
-   COMPONENTES REUTILIZÁVEIS
+   COMPONENTES DE UI
    ============================================ */
 
-/** Painel/card com fundo translúcido e sombra suave */
 .panel {
-  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  flex-direction: column;
+  height: auto;               /* Remova qualquer height fixo se existir */
+  min-height: min-content;    /* Garante que o painel caiba o conteúdo */
+  padding: var(--space-4);
+  background: var(--color-surface);
   border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 1rem;
-  padding: 1rem;
+  border-radius: var(--radius-lg);
   box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
   backdrop-filter: blur(10px);
+  
+  /* Garante que os filhos (header, form, cards) se respeitem */
+  & > * {
+    flex-shrink: 0; 
+  }
+
+  & .panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-block-end: var(--space-4);
+
+    & h2 {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+  }
 }
 
-/** Cabeçalho de painel com título e ações */
-.panel-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
+/* Formulários & Inputs via Aninhamento e Agrupamento */
+.file-input,
+.select,
+.textarea {
+  inline-size: 100%;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  color: var(--color-text-main);
+  padding: var(--space-3) 0.9rem;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+
+  &:disabled {
+    background-color: var(--color-border);
+  }
 }
 
-.panel-header h2 {
-  margin: 0;
-  font-size: 1.15rem;
+.textarea {
+  resize: vertical;
+  min-block-size: 120px;
 }
 
-/** Rótulo do escopo de busca no painel de chat */
+.field-label {
+  display: block;
+  margin-block-end: var(--space-2);
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
 .scope-label {
   margin: 0;
-  color: #475569;
+  color: var(--color-text-muted);
   font-size: 0.92rem;
   text-align: right;
 }
 
-/** Label de campo de formulário */
-.field-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-/* ============================================
-   FORMULÁRIOS E INPUTS
-   ============================================ */
-
-/** Estilo base para inputs, selects e textareas */
-.file-input,
-.select,
-.textarea {
-  width: 100%;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.8rem;
-  background: #ffffff;
-  color: #0f172a;
-  padding: 0.75rem 0.9rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-/** Estado de foco com anel de destaque em índigo */
-.file-input:focus,
-.select:focus,
-.textarea:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-}
-
-/** Textarea com redimensionamento vertical */
-.textarea {
-  resize: vertical;
-  min-height: 120px;
-}
-
-/** Linha de ações alinhada à direita */
 .actions-row {
   display: flex;
   justify-content: flex-end;
-  margin-top: 0.9rem;
+  margin-block-start: 0.9rem;
 }
 
-/* ============================================
-   BOTÕES
-   ============================================ */
-
-/** Botão primário com gradiente índigo-roxo */
+/* Botões */
 .primary-button {
   border: none;
-  border-radius: 0.85rem;
+  border-radius: var(--radius-md);
   padding: 0.8rem 1.1rem;
   font-weight: 700;
   color: #ffffff;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: var(--gradient-primary);
   box-shadow: 0 10px 18px rgba(79, 70, 229, 0.2);
+  transition: filter var(--transition-base), transform var(--transition-base);
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
 }
 
-.primary-button:hover:not(:disabled) {
-  filter: brightness(1.03);
-}
-
-.primary-button:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-/* ============================================
-   ESTADOS DE TEXTO
-   ============================================ */
-
-/** Texto secundário/desabilitado */
+/* Utilitários de Texto */
 .muted-text {
-  margin: 0.75rem 0 0;
-  color: #64748b;
+  margin-block-start: var(--space-3);
+  color: var(--color-text-light);
 }
 
-/** Mensagem de erro com fundo vermelho claro */
 .error-message {
-  margin: 0.75rem 0 0;
-  color: #b91c1c;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 0.8rem;
-  padding: 0.75rem 0.9rem;
+  margin-block-start: var(--space-3);
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) 0.9rem;
 }
 
 /* ============================================
-   FORMULÁRIOS ESPECÍFICOS
+   LISTAS E CARDS (Documentos, Chat, Fontes)
    ============================================ */
 
 .upload-form,
-.chat-form {
-  display: grid;
-  gap: 0.75rem;
-}
-
-/* ============================================
-   LISTAS
-   ============================================ */
-
-/** Reset de lista para componentes de UI */
+/*.chat-form,*/
 .file-list,
 .source-list,
-.document-summary-list {
-  list-style: none;
-  padding: 0;
-  margin: 0.9rem 0 0;
+/*.document-summary-list {
+  display: grid;
+  gap: var(--space-3);
+}*/
+
+.chat-form {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4); /* Adiciona espaço garantido antes da resposta */
 }
 
-/** Lista de arquivos selecionados para upload */
-.file-list {
-  display: grid;
-  gap: 0.5rem;
+.file-list,
+.source-list,
+/*.document-summary-list {
+  list-style: none;
+  padding: 0;
+  margin-block-start: 0.9rem;
+}*/
+.document-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding: 0;
+  list-style: none;
+  
+  /* Limite vertical com scroll */
+  max-height: 400px;       /* Ajuste este valor conforme sua necessidade visual */
+  overflow-y: auto;        /* Ativa o scroll apenas se necessário */
+  padding-right: 8px;      /* Espaço para a barra de scroll não cobrir o texto */
+}
+
+/* Estilização opcional da barra de scroll para ficar elegante */
+.document-summary-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.document-summary-list::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 10px;
+}
+
+/* Estilo Base Compartilhado para Itens de Lista */
+.file-list li,
+.document-summary-item,
+.source-card {
+  border-radius: var(--radius-md);
+  background: hsl(210, 33%, 98%);
+  border: 1px solid var(--color-border);
 }
 
 .file-list li {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--space-3);
   padding: 0.7rem 0.8rem;
-  border-radius: 0.8rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-}
-
-/** Nome do arquivo e metadados */
-.file-name,
-.document-summary-main h3 {
-  margin: 0;
-  font-size: 0.96rem;
-  font-weight: 600;
-  color: #0f172a;
-  overflow-wrap: anywhere;
-}
-
-.file-meta,
-.document-summary-metadata {
-  color: #64748b;
-  font-size: 0.84rem;
-  white-space: nowrap;
-}
-
-/* ============================================
-   LISTA DE DOCUMENTOS INDEXADOS
-   ============================================ */
-
-.document-summary-list {
-  display: grid;
-  gap: 0.6rem;
 }
 
 .document-summary-item {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 0.85rem;
-  border-radius: 0.85rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  gap: var(--space-4);
+  padding: var(--space-3) 0.85rem;
+
+  & .document-summary-main {
+    /*min-inline-size: 0;*/
+    min-width: 0; /* Essencial para que o truncamento funcione em flexbox */
+    flex: 1;
+
+    & h6 {
+      /*margin: 0;
+      font-size: 0.96rem;
+      font-weight: 600;
+      overflow-wrap: anywhere;*/
+      display: block;
+      margin: 0;
+      font-size: 0.96rem;
+      font-weight: 600;
+      color: var(--color-text-main);
+      
+      /* --- ALTERAÇÕES PARA QUEBRA DE LINHA --- */
+      white-space: normal;       /* Permite que o texto pule para a próxima linha */
+      overflow-wrap: break-word;  /* Força a quebra de palavras muito longas (evita vazar para os lados) */
+      word-break: break-word;     /* Garante que o texto respeite as bordas do container */
+      
+      /* --- REMOVA OU COMENTE ESTAS LINHAS --- */
+      /* overflow: hidden; */
+      /* text-overflow: ellipsis; */
+    }
+
+    & p {
+      margin-block-start: 0.2rem;
+      color: var(--color-text-light);
+      font-size: 0.88rem;
+    }
+  }
+
+  & .document-summary-metadata {
+    color: var(--color-text-light);
+    font-size: 0.84rem;
+    white-space: nowrap;
+  }
 }
 
-.document-summary-main {
-  min-width: 0;
+.file-name {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
-.document-summary-main p {
-  margin: 0.2rem 0 0;
-  color: #64748b;
-  font-size: 0.88rem;
+.file-meta {
+  color: var(--color-text-light);
+  font-size: 0.84rem;
+  white-space: nowrap;
 }
 
-/* ============================================
-   CARD DE RESPOSTA DO CHAT
-   ============================================ */
-
+/* Cards de Chat e Fontes */
 .answer-card {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 0.9rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  margin-top: 0;
+  margin-block-start: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: hsl(210, 33%, 98%);
+  border: 1px solid var(--color-border);
+
+  & .answer-card-header h3 {
+    margin-block: 0 var(--space-2);
+    font-size: 1rem;
+  }
+
+  & .answer-text {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
 }
 
-.answer-card-header {
-  margin-bottom: 0.5rem;
-}
-
-.answer-card-header h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-/** Preserva quebras de linha na resposta do assistente */
-.answer-text {
-  margin: 0;
-  white-space: pre-wrap;
-  color: #0f172a;
-}
-
-/* ============================================
-   LISTA DE FONTES/CITAÇÕES
-   ============================================ */
-
-.source-list {
-  display: grid;
-  gap: 0.75rem;
-}
-
-/** Card individual de uma fonte */
 .source-card {
   padding: 0.9rem;
-  border-radius: 0.9rem;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-}
 
-.source-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
+  & .source-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-block-end: var(--space-2);
 
-.source-index {
-  font-weight: 700;
-  color: #0f172a;
-}
+    & .source-index { font-weight: 700; }
+  }
 
-/** Badge com o score de similaridade */
-.score-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  background: #e0e7ff;
-  color: #4338ca;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
+  & .score-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: var(--color-primary-bg);
+    color: var(--color-primary-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
 
-.source-location {
-  margin: 0 0 0.35rem;
-  color: #475569;
-  font-size: 0.88rem;
-}
+  & .source-location {
+    margin-block: 0 0.35rem;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
 
-/** Preserva formatação do trecho original */
-.source-excerpt {
-  margin: 0;
-  color: #0f172a;
-  white-space: pre-wrap;
+  & .source-excerpt {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
 }
 
 /* ============================================
-   RESPONSIVIDADE
+   RESPONSIVIDADE INTELIGENTE
    ============================================ */
 
-/** Desktop: layout em duas colunas */
-@media (min-width: 960px) {
-  .app-grid {
-    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
-    align-items: start;
-  }
-
-  .app-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: end;
-  }
-
-  .app-description {
-    text-align: right;
-  }
-}
-
-/** Mobile: ajustes de padding e empilhamento */
+/* Mobile: Ajustes de empilhamento */
 @media (max-width: 640px) {
   .app-shell {
-    width: min(100% - 1rem, 1200px);
-    padding-top: 1rem;
+    inline-size: min(100% - var(--space-4), 1200px);
+    padding-block-start: var(--space-4);
   }
 
   .panel {
@@ -471,3 +478,64 @@ textarea:disabled {
   }
 }
 
+/* Desktop: Ajustes de layout com Grid */
+@media (min-width: 960px) {
+  .app-grid {
+    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .app-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    
+    & .app-description { text-align: right; }
+  }
+}
+
+/* ============================================
+   DARK MODE (AUTOMÁTICO)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Ajuste das matizes para melhor contraste em fundos escuros */
+    --color-text-main: hsl(210, 40%, 98%);    /* Branco off-white */
+    --color-text-muted: hsl(215, 20%, 80%);   /* Cinza claro */
+    --color-text-light: hsl(215, 15%, 65%);   /* Cinza médio */
+    
+    /* Fundos e Superfícies */
+    --color-bg-body: linear-gradient(180deg, hsl(222, 47%, 10%) 0%, hsl(222, 47%, 4%) 100%);
+    --color-surface: rgba(30, 41, 59, 0.7);   /* Azul escuro translúcido */
+    --color-border: hsl(217, 33%, 18%);
+    --color-border-input: hsl(217, 33%, 25%);
+
+    /* Primárias e Gradientes (Levemente mais vibrantes para destacar no escuro) */
+    --color-primary: hsl(var(--hue-primary), 90%, 70%);
+    --color-primary-bg: hsl(var(--hue-primary), 40%, 15%);
+    --gradient-primary: linear-gradient(135deg, hsl(243, 80%, 65%), hsl(262, 83%, 65%));
+
+    /* Inputs e Cards */
+    .file-input,
+    .select,
+    .textarea {
+      background: hsl(222, 47%, 12%);
+      color: var(--color-text-main);
+    }
+
+    .file-list li,
+    .document-summary-item,
+    .source-card,
+    .answer-card {
+      background: hsl(222, 47%, 11%);
+      border-color: var(--color-border);
+    }
+    
+    /* Efeito de Vidro (Glassmorphism) mais visível no escuro */
+    .panel {
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  }
+}
