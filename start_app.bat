@@ -80,7 +80,7 @@ REM    echo [ERRO] npm nao encontrado!
 REM    echo [ERRO] Verifique se o Node.js esta em: %SCRIPT_DIR%\nodejs
 REM    pause
 REM    exit /b 1
-REM)
+REM )
 
 start "Frontend" cmd /k "npm run dev"
 echo [OK] Frontend iniciado em http://localhost:5173
