@@ -75,12 +75,13 @@ async def upload_documents(
         HTTPException: 503 se houver erro no processamento do serviço
     """
     if not files:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="At least one file is required.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Pelo menos um arquivo é necessário.")
 
     incoming_files: list[IncomingFile] = []
     for upload_file in files:
         if not upload_file.filename:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Every file must have a filename.")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cada arquivo deve ter um nome.")
+
         content = await upload_file.read()
         incoming_files.append(
             IncomingFile(

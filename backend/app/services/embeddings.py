@@ -55,5 +55,5 @@ def get_embeddings(texts: list[str], settings: Settings) -> list[list[float]]:
         # Converte arrays numpy para listas Python nativas
         return [embedding.tolist() for embedding in embeddings]
     except Exception as exc:
-        raise RuntimeError(f"Failed to generate embeddings: {exc}") from exc
+        raise RuntimeError(f"Falha em gerar os embarcados: {exc}") from exc
 

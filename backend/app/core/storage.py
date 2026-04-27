@@ -138,7 +138,7 @@ class DocumentStorage:
             return []
         payload = json.loads(raw_text)
         if not isinstance(payload, list):
-            raise RuntimeError(f"Document registry is malformed: {self.registry_file}")
+            raise RuntimeError(f"O registro de documentos está corrompido: {self.registry_file}")
         documents: list[StoredDocument] = []
         for item in payload:
             if isinstance(item, dict):

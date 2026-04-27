@@ -83,7 +83,7 @@ class VectorStore:
             RuntimeError: Se houver erro na comunicação com o ChromaDB
         """
         if len(chunks) != len(embeddings):
-            raise ValueError("Chunks and embeddings must have the same length.")
+            raise ValueError("Os blocos e embarcados devem ter o mesmo comprimento.")
 
         if not chunks:
             return 0
@@ -122,7 +122,7 @@ class VectorStore:
                 metadatas=metadatas,
             )
         except Exception as exc:
-            raise RuntimeError(f"Failed to add chunks to vector store: {exc}") from exc
+            raise RuntimeError(f"Falha ao adicionar blocos ao armazenamento de vetores: {exc}") from exc
 
         return len(chunks)
 
@@ -161,7 +161,7 @@ class VectorStore:
                 include=["documents", "metadatas", "distances"],
             )
         except Exception as exc:
-            raise RuntimeError(f"Failed to query vector store: {exc}") from exc
+            raise RuntimeError(f"Falha ao consultar o armazenamento de vetores: {exc}") from exc
 
         matches: list[VectorMatch] = []
 

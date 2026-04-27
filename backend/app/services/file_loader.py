@@ -177,7 +177,7 @@ def load_file_sections(incoming_file: IncomingFile) -> list[DocumentSection]:
     document_type = _detect_document_type(incoming_file.filename)
 
     if document_type == DocumentType.unknown:
-        raise ValueError(f"Unsupported file format: {incoming_file.filename}")
+        raise ValueError(f"Formato de arquivo não suportado: {incoming_file.filename}")
 
     try:
         if document_type == DocumentType.pdf:
@@ -187,7 +187,7 @@ def load_file_sections(incoming_file: IncomingFile) -> list[DocumentSection]:
         if document_type == DocumentType.xlsx:
             return _load_xlsx_sections(document_id, incoming_file.filename, incoming_file.content)
     except Exception as exc:
-        raise RuntimeError(f"Failed to parse {incoming_file.filename}: {exc}") from exc
+        raise RuntimeError(f"Falha ao analisar {incoming_file.filename}: {exc}") from exc
 
     return []
 

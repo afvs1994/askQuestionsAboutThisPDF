@@ -78,7 +78,7 @@ class RAGService:
             # 1. Extrai seções de texto do arquivo
             sections = load_file_sections(incoming_file)
             if not sections:
-                raise ValueError(f"No text could be extracted from {incoming_file.filename}")
+                raise ValueError(f"Nenhum texto pôde ser extraído de {incoming_file.filename}")
 
             document_id = sections[0].document_id
             document_type = sections[0].document_type
@@ -86,7 +86,7 @@ class RAGService:
             # 2. Divide em chunks
             chunks = chunk_sections(sections, self.settings)
             if not chunks:
-                raise ValueError(f"No chunks could be created from {incoming_file.filename}")
+                raise ValueError(f"Não foi possível criar nenhum fragmento a partir de {incoming_file.filename}")
 
             # 3. Gera embeddings para todos os chunks
             chunk_texts = [chunk.text for chunk in chunks]
@@ -143,21 +143,21 @@ class RAGService:
             RuntimeError: Se houver erro na comunicação com LLM ou vector store
         """
         if not question or not question.strip():
-            raise ValueError("Question cannot be empty.")
+            raise ValueError("A pergunta não pode ser vazia.")
 
         k = top_k if top_k is not None else self.settings.top_k_default
 
         # 1. Embedding da pergunta
         query_embeddings = get_embeddings([question.strip()], self.settings)
         if not query_embeddings:
-            raise RuntimeError("Failed to generate query embedding.")
+            raise RuntimeError("Falha ao gerar embarcado de consulta.")
         query_embedding = query_embeddings[0]
 
         # 2. Busca vetorial
         matches = self.vector_store.search(query_embedding, k, document_id)
         if not matches:
             return ChatResult(
-                answer="I couldn't find any relevant information in the provided documents to answer your question.",
+                answer="Não consegui encontrar informações relevantes nos documentos fornecidos para responder à sua pergunta.",
                 sources=[],
             )
 
