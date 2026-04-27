@@ -160,6 +160,38 @@ class DocumentStorage:
         temp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         temp_path.replace(self.registry_file)
 
+    def delete_document(self, document_id: str) -> bool:
+        """
+        Remove um documento do registro e apaga seus arquivos originais.
+
+        A operação é thread-safe e atômica para o registry JSON.
+        O diretório de uploads do documento é removido recursivamente.
+
+        Args:
+            document_id: UUID do documento a ser removido
+
+        Returns:
+            True se o documento existia e foi removido, False caso contrário
+        """
+        with self._lock:
+            documents = self._load_documents()
+            original_count = len(documents)
+            # Filtra o documento a ser removido
+            kept_documents = [existing for existing in documents if existing.id != document_id]
+            if len(kept_documents) == original_count:
+                # Documento não encontrado no registry
+                return False
+            # Reescreve o registry sem o documento removido
+            self._write_documents(kept_documents)
+
+        # Remove o diretório de uploads do documento (fora do lock pois é I/O de filesystem)
+        document_dir = self.upload_dir / document_id
+        if document_dir.exists():
+            import shutil
+            shutil.rmtree(document_dir, ignore_errors=True)
+
+        return True
+
     def _sanitize_filename(self, filename: str) -> str:
         """
         Remove caracteres perigosos do nome do arquivo.

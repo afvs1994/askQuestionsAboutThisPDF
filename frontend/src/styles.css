@@ -375,6 +375,47 @@ button {
   }
 }
 
+/** Container de ações no item de documento (mime type + botão delete) */
+.document-summary-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/** Botão de remoção de documento — estilo discreto mas visível */
+.delete-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--transition-base), color var(--transition-base);
+
+  &:hover:not(:disabled) {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
 .file-name {
   margin: 0;
   font-size: 0.96rem;

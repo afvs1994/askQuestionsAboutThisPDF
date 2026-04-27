@@ -10,7 +10,7 @@
  * Gerencia o estado global da aplicação e coordena as chamadas à API.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChatSource, DocumentSummary, fetchDocuments, formatDocumentScope, submitChat, uploadDocuments } from './api/client';
+import { ChatSource, DocumentSummary, deleteDocument, fetchDocuments, formatDocumentScope, submitChat, uploadDocuments } from './api/client';
 import ChatPanel from './components/ChatPanel';
 import DocumentFilter from './components/DocumentFilter';
 import SourceList from './components/SourceList';
@@ -56,6 +56,12 @@ export default function App() {
 
   /** Mensagem de erro no upload, ou null se não houver erro. */
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  /** Indica se uma deleção de documento está em andamento. */
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  /** Mensagem de erro na deleção, ou null se não houver erro. */
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   /** Indica se uma pergunta está sendo processada pelo backend. */
   const [isChatLoading, setIsChatLoading] = useState<boolean>(false);
@@ -141,6 +147,44 @@ export default function App() {
   }
 
   /**
+   * Handler para deleção permanente de um documento.
+   * Exibe diálogo de confirmação nativo com opções SIM/NÃO.
+   * Após confirmação, envia requisição DELETE ao backend e atualiza a lista.
+   *
+   * @param documentId - UUID do documento a ser removido
+   * @param filename - Nome do arquivo para exibição na confirmação
+   */
+  async function handleDeleteDocument(documentId: string, filename: string): Promise<void> {
+    // Evita múltiplas deleções simultâneas
+    if (isDeleting) {
+      return;
+    }
+
+    // Diálogo de confirmação nativo do navegador com botões OK (SIM) / Cancelar (NÃO)
+    const confirmed = window.confirm(
+      `Deseja permanentemente excluir o documento "${filename}"?\n\nEsta ação não pode ser desfeita.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await deleteDocument(documentId);
+      // Atualiza a lista local após remoção bem-sucedida
+      await refreshDocuments();
+    } catch (error) {
+      const message = getErrorMessage(error, 'Falha ao remover o documento.');
+      setDeleteError(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  /**
    * Handler para envio de uma pergunta ao assistente.
    * Envia a pergunta ao backend junto com o filtro de documento (se houver).
    *
@@ -200,6 +244,7 @@ export default function App() {
             </div>
 
             {documentsError !== null ? <p className="error-message">{documentsError}</p> : null}
+            {deleteError !== null ? <p className="error-message">{deleteError}</p> : null}
             {isDocumentsLoading ? <p className="muted-text">Loading document library...</p> : null}
             {!isDocumentsLoading && documents.length === 0 && documentsError === null ? (
               <p className="muted-text">Nenhum documento indexado ainda. Carregue um arquivo para iniciar.</p>
@@ -214,7 +259,18 @@ export default function App() {
                         {document.document_type} · {document.chunk_count} chunks
                       </p>
                     </div>
-                    <span className="document-summary-metadata">{document.mime_type}</span>
+                    <div className="document-summary-actions">
+                      <span className="document-summary-metadata">{document.mime_type}</span>
+                      <button
+                        className="delete-button"
+                        type="button"
+                        title="Remover documento permanentemente"
+                        disabled={isDeleting}
+                        onClick={() => handleDeleteDocument(document.id, document.filename)}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

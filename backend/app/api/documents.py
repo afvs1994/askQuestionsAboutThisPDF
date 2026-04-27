@@ -100,3 +100,44 @@ async def upload_documents(
 
     return UploadResponse(documents=[_to_document_summary(document) for document in documents])
 
+
+@router.delete("/{document_id}")
+async def delete_document(
+    document_id: str,
+    service: RAGService = Depends(get_rag_service),
+) -> dict[str, bool]:
+    """
+    Remove permanentemente um documento do sistema RAG.
+
+    Deleta o documento do registro de metadados, remove o arquivo original
+    do filesystem e elimina todos os chunks vetoriais associados no ChromaDB.
+    A operação é irreversível.
+
+    Args:
+        document_id: UUID do documento a ser removido
+        service: Serviço RAG injetado via dependência
+
+    Returns:
+        Dicionário com confirmação de remoção: {"deleted": True}
+
+    Raises:
+        HTTPException: 404 se o documento não for encontrado
+        HTTPException: 503 se houver erro no serviço de deleção
+    """
+    try:
+        deleted = await asyncio.to_thread(service.delete_document, document_id)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Erro ao remover documento: {exc}",
+        ) from exc
+
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Documento não encontrado.",
+        )
+
+    return {"deleted": True}
+
+

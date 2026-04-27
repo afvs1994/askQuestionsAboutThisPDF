@@ -330,6 +330,18 @@ export async function submitChat(request: ChatRequest): Promise<ChatResponse> {
 }
 
 /**
+ * Envia uma requisição DELETE para remover um documento do backend.
+ *
+ * @param documentId - UUID do documento a ser removido
+ */
+export async function deleteDocument(documentId: string): Promise<void> {
+  const response = await fetch(buildApiUrl(`/api/documents/${encodeURIComponent(documentId)}`), {
+    method: 'DELETE'
+  });
+  await readJsonResponse(response);
+}
+
+/**
  * Formata o rótulo de escopo para exibição na interface.
  *
  * @param document - Documento selecionado ou undefined (todos)

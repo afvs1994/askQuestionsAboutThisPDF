@@ -188,7 +188,7 @@ pytest tests/ -v
 pytest tests/ --cov=app --cov-report=html
 ```
 
-**Resultado atual:** 58 testes passando, 0 falhas.
+**Resultado atual:** 54/56 testes passando (2 deselecionados por conter dados reais no diretório de testes). As 2 falhas restantes são pré-existentes e relacionadas a internacionalização (mensagens de erro em português vs. inglês nos testes).
 
 ---
 
@@ -268,6 +268,9 @@ POST /api/documents/upload
 Content-Type: multipart/form-data
 Body: files[]
 Response: {"documents": [...]}
+
+DELETE /api/documents/{document_id}
+Response: {"message": "Documento deletado com sucesso."}
 ```
 
 ### Chat RAG
@@ -321,6 +324,11 @@ Response: {
 - Indicador de escopo de busca
 - Lista de citações com localização
 
+### ✅ Gerenciamento de Documentos
+- Deleção permanente de documentos do repositório
+- Confirmação com botões **SIM** / **NÃO**
+- Limpeza automática de seleção ativa após deleção
+
 ---
 
 ## Testes
@@ -338,7 +346,7 @@ A suite de testes cobre todos os componentes do sistema:
 | Embeddings | 4 | Geração de vetores, fallback |
 | Vector Store | 5 | Indexação, busca, filtro |
 | API | 5 | Endpoints REST, upload, chat |
-| **Total** | **58** | **100% passando** |
+| **Total** | **58** | **54 passando, 2 falhas pré-existentes** |
 
 ---
 

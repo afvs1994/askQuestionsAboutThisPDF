@@ -170,6 +170,32 @@ class RAGService:
 
         return ChatResult(answer=answer, sources=matches)
 
+    def delete_document(self, document_id: str) -> bool:
+        """
+        Remove permanentemente um documento do sistema RAG.
+
+        Executa a remoção em duas etapas:
+        1. Deleta todos os chunks vetoriais associados ao documento no ChromaDB
+        2. Remove o registro de metadados e os arquivos originais do storage
+
+        Args:
+            document_id: UUID do documento a ser removido
+
+        Returns:
+            True se o documento existia e foi removido com sucesso, False caso contrário
+        """
+        # Verifica se o documento existe antes de tentar deletar
+        document = self.storage.get_document(document_id)
+        if document is None:
+            return False
+
+        # 1. Remove os embeddings do vector store (ChromaDB)
+        # Esta operação é idempotente: se os chunks já não existirem, retorna 0
+        self.vector_store.delete_by_document_id(document_id)
+
+        # 2. Remove o registro do documento e os arquivos originais do filesystem
+        return self.storage.delete_document(document_id)
+
 
 def create_rag_service(settings: Settings) -> RAGService:
     """

@@ -83,7 +83,7 @@ class VectorStore:
             RuntimeError: Se houver erro na comunicação com o ChromaDB
         """
         if len(chunks) != len(embeddings):
-            raise ValueError("Os blocos e embarcados devem ter o mesmo comprimento.")
+            raise ValueError("Chunks and embeddings must have the same length.")
 
         if not chunks:
             return 0
@@ -197,4 +197,42 @@ class VectorStore:
         # Ordena por score decrescente
         matches.sort(key=lambda match: match.score, reverse=True)
         return matches
+
+    def delete_by_document_id(self, document_id: str) -> int:
+        """
+        Remove todos os chunks vetoriais associados a um documento.
+
+        Consulta a coleção por metadados com document_id igual ao fornecido,
+        coleta todos os IDs dos chunks e os remove da coleção.
+
+        Args:
+            document_id: UUID do documento cujos chunks serão removidos
+
+        Returns:
+            Número de chunks removidos
+
+        Raises:
+            RuntimeError: Se houver erro na comunicação com o ChromaDB
+        """
+        collection = self._get_collection()
+
+        try:
+            # Busca todos os chunks do documento sem limite de resultados
+            results = collection.get(
+                where={"document_id": document_id},
+                include=[],  # Só precisamos dos IDs
+            )
+        except Exception as exc:
+            raise RuntimeError(f"Falha ao buscar chunks para deleção: {exc}") from exc
+
+        ids_list = results.get("ids", [])
+        if not ids_list:
+            return 0
+
+        try:
+            collection.delete(ids=ids_list)
+        except Exception as exc:
+            raise RuntimeError(f"Falha ao deletar chunks do armazenamento de vetores: {exc}") from exc
+
+        return len(ids_list)
 
