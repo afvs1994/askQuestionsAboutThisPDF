@@ -192,6 +192,31 @@ class DocumentStorage:
 
         return True
 
+    def delete_all_documents(self) -> int:
+        """
+        Remove todos os documentos do registro e apaga todos os arquivos originais.
+
+        A operação é thread-safe e atômica para o registry JSON.
+        Todos os diretórios de uploads são removidos recursivamente.
+
+        Returns:
+            Número de documentos removidos
+        """
+        with self._lock:
+            documents = self._load_documents()
+            count = len(documents)
+            # Limpa o registry
+            self._write_documents([])
+
+        # Remove todos os diretórios de uploads (fora do lock)
+        if self.upload_dir.exists():
+            import shutil
+            for item in self.upload_dir.iterdir():
+                if item.is_dir():
+                    shutil.rmtree(item, ignore_errors=True)
+
+        return count
+
     def _sanitize_filename(self, filename: str) -> str:
         """
         Remove caracteres perigosos do nome do arquivo.

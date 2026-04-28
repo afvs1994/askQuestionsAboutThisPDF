@@ -141,3 +141,34 @@ async def delete_document(
     return {"deleted": True}
 
 
+@router.delete("")
+async def delete_all_documents(
+    service: RAGService = Depends(get_rag_service),
+) -> dict[str, int]:
+    """
+    Remove permanentemente todos os documentos do sistema RAG.
+
+    Deleta todos os documentos do registro de metadados, remove todos os
+    arquivos originais do filesystem e elimina todos os chunks vetoriais
+    do ChromaDB. A operação é irreversível.
+
+    Args:
+        service: Serviço RAG injetado via dependência
+
+    Returns:
+        Dicionário com número de documentos removidos: {"deleted_count": N}
+
+    Raises:
+        HTTPException: 503 se houver erro no serviço de deleção
+    """
+    try:
+        deleted_count = await asyncio.to_thread(service.delete_all_documents)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Erro ao remover todos os documentos: {exc}",
+        ) from exc
+
+    return {"deleted_count": deleted_count}
+
+

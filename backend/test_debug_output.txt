@@ -1,0 +1,9 @@
+Failed to send telemetry event ClientStartEvent: capture() takes 1 positional argument but 3 were given
+Failed to send telemetry event ClientCreateCollectionEvent: capture() takes 1 positional argument but 3 were given
+Failed to send telemetry event CollectionGetEvent: capture() takes 1 positional argument but 3 were given
+GET Status: 200
+GET Count: 0
+DELETE Status: 200
+DELETE Body: {"deleted_count":0}
+GET After Status: 200
+GET After Count: 0

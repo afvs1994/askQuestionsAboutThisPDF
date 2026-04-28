@@ -342,6 +342,16 @@ export async function deleteDocument(documentId: string): Promise<void> {
 }
 
 /**
+ * Envia uma requisição DELETE para remover todos os documentos do backend.
+ */
+export async function deleteAllDocuments(): Promise<void> {
+  const response = await fetch(buildApiUrl('/api/documents'), {
+    method: 'DELETE'
+  });
+  await readJsonResponse(response);
+}
+
+/**
  * Formata o rótulo de escopo para exibição na interface.
  *
  * @param document - Documento selecionado ou undefined (todos)

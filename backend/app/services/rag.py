@@ -196,6 +196,23 @@ class RAGService:
         # 2. Remove o registro do documento e os arquivos originais do filesystem
         return self.storage.delete_document(document_id)
 
+    def delete_all_documents(self) -> int:
+        """
+        Remove permanentemente todos os documentos do sistema RAG.
+
+        Executa a remoção em duas etapas:
+        1. Deleta todos os chunks vetoriais do ChromaDB
+        2. Limpa o registro de metadados e remove todos os arquivos originais do storage
+
+        Returns:
+            Número de documentos removidos
+        """
+        # 1. Remove todos os embeddings do vector store (ChromaDB)
+        self.vector_store.delete_all()
+
+        # 2. Limpa o registro e remove todos os arquivos originais do filesystem
+        return self.storage.delete_all_documents()
+
 
 def create_rag_service(settings: Settings) -> RAGService:
     """

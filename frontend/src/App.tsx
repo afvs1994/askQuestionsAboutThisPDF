@@ -10,7 +10,7 @@
  * Gerencia o estado global da aplicação e coordena as chamadas à API.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChatSource, DocumentSummary, deleteDocument, fetchDocuments, formatDocumentScope, submitChat, uploadDocuments } from './api/client';
+import { ChatSource, DocumentSummary, deleteAllDocuments, deleteDocument, fetchDocuments, formatDocumentScope, submitChat, uploadDocuments } from './api/client';
 import ChatPanel from './components/ChatPanel';
 import DocumentFilter from './components/DocumentFilter';
 import SourceList from './components/SourceList';
@@ -185,6 +185,39 @@ export default function App() {
   }
 
   /**
+   * Handler para deleção permanente de todos os documentos.
+   * Exibe diálogo de confirmação nativo com opções SIM/NÃO.
+   * Após confirmação, envia requisição DELETE ao backend e atualiza a lista.
+   */
+  async function handleDeleteAll(): Promise<void> {
+    if (isDeleting) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `⚠️ ATENÇÃO\n\nVocê está prestes a excluir todos os documentos do repositório (${documents.length} documentos).\n\nEsta ação é irreversível e removerá tanto os arquivos quanto os índices vetoriais.\n\nDeseja continuar?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await deleteAllDocuments();
+      setSelectedDocumentId('');
+      await refreshDocuments();
+    } catch (error) {
+      const message = getErrorMessage(error, 'Falha ao remover todos os documentos.');
+      setDeleteError(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  /**
    * Handler para envio de uma pergunta ao assistente.
    * Envia a pergunta ao backend junto com o filtro de documento (se houver).
    *
@@ -282,6 +315,8 @@ export default function App() {
             isLoading={isDocumentsLoading}
             selectedDocumentId={selectedDocumentId}
             onChange={setSelectedDocumentId}
+            onDeleteAll={handleDeleteAll}
+            isDeleting={isDeleting}
           />
         </div>
 

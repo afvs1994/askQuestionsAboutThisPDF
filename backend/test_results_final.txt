@@ -1,0 +1,51 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-8.4.2, pluggy-1.6.0
+rootdir: c:\Users\afvs1\askQuestionsAboutThisPDF\backend
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-0.26.0
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 60 items
+
+tests\test_api.py .......                                                [ 11%]
+tests\test_chunking.py .........                                         [ 26%]
+tests\test_config.py ......                                              [ 36%]
+tests\test_embeddings.py ....                                            [ 43%]
+tests\test_file_loader.py ....F.                                         [ 53%]
+tests\test_llm.py .....                                                  [ 61%]
+tests\test_schemas.py ..........                                         [ 78%]
+tests\test_storage.py ........                                           [ 91%]
+tests\test_vector_store.py .....                                         [100%]
+
+================================== FAILURES ===================================
+__________ TestLoadFileSections.test_unsupported_format_raises_error __________
+tests\test_file_loader.py:63: in test_unsupported_format_raises_error
+    load_file_sections(incoming)
+app\services\file_loader.py:180: in load_file_sections
+    raise ValueError(f"Formato de arquivo não suportado: {incoming_file.filename}")
+E   ValueError: Formato de arquivo não suportado: test.txt
+
+During handling of the above exception, another exception occurred:
+tests\test_file_loader.py:62: in test_unsupported_format_raises_error
+    with pytest.raises(ValueError, match="Unsupported file format"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E    Regex: 'Unsupported file format'
+E    Input: 'Formato de arquivo não suportado: test.txt'
+============================== warnings summary ===============================
+tests/test_api.py::TestHealthEndpoint::test_health_returns_ok
+  C:\Users\afvs1\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pytest_asyncio\plugin.py:1216: DeprecationWarning: 'asyncio.get_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    return asyncio.get_event_loop_policy()
+
+tests/test_api.py: 95 warnings
+  C:\Users\afvs1\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+tests/test_api.py: 2 warnings
+tests/test_vector_store.py: 33 warnings
+  C:\Users\afvs1\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\chromadb\types.py:144: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    return self.model_fields  # pydantic 2.x
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_file_loader.py::TestLoadFileSections::test_unsupported_format_raises_error
+================= 1 failed, 59 passed, 131 warnings in 15.13s =================

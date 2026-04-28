@@ -246,6 +246,25 @@ button {
   }
 }
 
+.danger-button {
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.8rem 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, hsl(0, 72%, 50%), hsl(0, 72%, 40%));
+  box-shadow: 0 10px 18px rgba(220, 38, 38, 0.2);
+  transition: filter var(--transition-base), transform var(--transition-base);
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+}
+
 /* Utilitários de Texto */
 .muted-text {
   margin-block-start: var(--space-3);

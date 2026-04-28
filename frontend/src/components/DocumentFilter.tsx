@@ -18,6 +18,10 @@ interface DocumentFilterProps {
   selectedDocumentId: string;
   /** Callback chamado quando o usuário muda a seleção. */
   onChange: (documentId: string) => void;
+  /** Callback chamado quando o usuário confirma deleção de todos os documentos. */
+  onDeleteAll: () => void;
+  /** Indica se uma deleção está em andamento. */
+  isDeleting: boolean;
 }
 
 /**
@@ -31,7 +35,9 @@ export default function DocumentFilter({
   documents,
   isLoading,
   selectedDocumentId,
-  onChange
+  onChange,
+  onDeleteAll,
+  isDeleting
 }: DocumentFilterProps) {
   return (
     <section className="panel">
@@ -60,6 +66,17 @@ export default function DocumentFilter({
           </option>
         ))}
       </select>
+
+      {/* Botão de deletar todos com mensagem de WARNING */}
+      <button
+        type="button"
+        className="danger-button"
+        onClick={onDeleteAll}
+        disabled={isDeleting || documents.length === 0 || isLoading}
+        style={{ width: '100%', marginTop: '0.75rem' }}
+      >
+        {isDeleting ? 'Removendo...' : '⚠️ Deletar todos os documentos'}
+      </button>
 
       {/* Mensagem informativa sobre o estado atual */}
       {isLoading ? (

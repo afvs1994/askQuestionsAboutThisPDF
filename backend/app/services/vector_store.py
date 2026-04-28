@@ -198,6 +198,37 @@ class VectorStore:
         matches.sort(key=lambda match: match.score, reverse=True)
         return matches
 
+    def delete_all(self) -> int:
+        """
+        Remove todos os chunks vetoriais da coleção.
+
+        Returns:
+            Número de chunks removidos
+
+        Raises:
+            RuntimeError: Se houver erro na comunicação com o ChromaDB
+        """
+        collection = self._get_collection()
+
+        try:
+            # Busca todos os IDs na coleção
+            results = collection.get(include=[])
+            ids_list = results.get("ids", [])
+            if not ids_list:
+                return 0
+            
+            # Deleta em lotes para evitar limites do ChromaDB (~5461 por operação)
+            batch_size = 1000
+            total_deleted = 0
+            for i in range(0, len(ids_list), batch_size):
+                batch = ids_list[i:i + batch_size]
+                collection.delete(ids=batch)
+                total_deleted += len(batch)
+            
+            return total_deleted
+        except Exception as exc:
+            raise RuntimeError(f"Falha ao deletar todos os chunks: {exc}") from exc
+
     def delete_by_document_id(self, document_id: str) -> int:
         """
         Remove todos os chunks vetoriais associados a um documento.

@@ -61,6 +61,27 @@ class TestDocumentsEndpoint:
         assert response.status_code == 422  # FastAPI validation error
 
 
+    def test_delete_all_documents(self, client: TestClient) -> None:
+        """
+        Verifica que DELETE /api/documents funciona corretamente.
+        Remove todos os documentos e retorna contagem.
+        """
+        response = client.delete("/api/documents")
+        assert response.status_code == 200
+        data = response.json()
+        assert "deleted_count" in data
+        assert isinstance(data["deleted_count"], int)
+
+    def test_delete_document_not_found(self, client: TestClient) -> None:
+        """
+        Verifica erro 404 ao tentar deletar documento inexistente.
+        """
+        response = client.delete("/api/documents/non-existent-id")
+        
+        assert response.status_code == 404
+        assert "detail" in response.json()
+
+
 class TestChatEndpoint:
     """Testes para o endpoint de chat."""
 

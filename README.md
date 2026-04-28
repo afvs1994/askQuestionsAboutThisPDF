@@ -270,7 +270,10 @@ Body: files[]
 Response: {"documents": [...]}
 
 DELETE /api/documents/{document_id}
-Response: {"message": "Documento deletado com sucesso."}
+Response: {"deleted": true}
+
+DELETE /api/documents
+Response: {"deleted_count": N}  // remove todos os documentos
 ```
 
 ### Chat RAG
