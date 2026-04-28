@@ -176,19 +176,228 @@ npm run dev
 
 O frontend estará disponível em `http://localhost:5173`.
 
-### 4. Executar Testes
+### 4. Executar Testes (Passo a Passo para Iniciantes)
+
+Esta seção explica como rodar os testes automatizados que verificam se o sistema está funcionando corretamente.
+
+#### O que são testes?
+Testes são comandos que executam partes do código para garantir que tudo funciona como esperado. Se algo estiver quebrado, os testes mostram onde está o problema.
+
+#### Passo 1: Abrir o terminal na pasta correta
+Primeiro, você precisa estar dentro da pasta `backend`. No terminal, execute:
 
 ```bash
 cd backend
+```
 
-# Todos os testes
+> **Dica:** O comando `cd` significa "change directory" (mudar de pasta). Certifique-se de que você está na pasta raiz do projeto antes de executar este comando.
+
+#### Passo 2: Rodar todos os testes
+Execute o seguinte comando para rodar todos os testes:
+
+```bash
 pytest tests/ -v
+```
 
-# Com cobertura
+> **O que cada parte significa:**
+> - `pytest` → é o programa que executa os testes
+> - `tests/` → é a pasta onde os testes estão localizados
+> - `-v` → significa "verbose" (detalhado). Mostra o nome de cada teste e se passou ou falhou
+
+#### Passo 3: Interpretar o resultado
+Após executar o comando, você verá uma saída similar a esta:
+
+```
+==================================== test session starts =====================================
+platform win32 -- Python 3.14.3, pytest-8.4.2, pluggy-1.6.0
+collected 60 items
+
+tests/test_api.py::TestHealthEndpoint::test_health_returns_ok PASSED                    [  1%]
+tests/test_api.py::TestDocumentsEndpoint::test_list_documents_empty PASSED              [  3%]
+...
+
+=============================== 58 passed, 2 failed in 5.23s ================================
+```
+
+**Significado dos resultados:**
+- `PASSED` (verde) → O teste passou! A funcionalidade está funcionando corretamente.
+- `FAILED` (vermelho) → O teste falhou. Pode indicar um bug ou configuração incorreta.
+- `ERROR` → Ocorreu um erro inesperado durante a execução do teste.
+
+#### Passo 4: Rodar apenas um teste específico
+Se você quiser testar apenas uma funcionalidade específica, pode rodar apenas um arquivo de teste:
+
+```bash
+# Testar apenas os endpoints da API
+pytest tests/test_api.py -v
+
+# Testar apenas o serviço de armazenamento
+pytest tests/test_storage.py -v
+
+# Testar apenas a deleção de documentos
+pytest tests/test_api.py::TestDocumentsEndpoint::test_delete_all_documents -v
+```
+
+#### Passo 5: Rodar com cobertura de código (opcional)
+A cobertura de código mostra quais partes do código foram testadas. Para gerar um relatório:
+
+```bash
 pytest tests/ --cov=app --cov-report=html
 ```
 
-**Resultado atual:** 54/56 testes passando (2 deselecionados por conter dados reais no diretório de testes). As 2 falhas restantes são pré-existentes e relacionadas a internacionalização (mensagens de erro em português vs. inglês nos testes).
+Após executar, abra o arquivo `htmlcov/index.html` no navegador para ver o relatório visual.
+
+#### Resultado atual do projeto
+Atualmente, o projeto possui **60 testes** coletados:
+- **58 passando** ✅
+- **2 falhas pré-existentes** ⚠️ (relacionadas a mensagens de erro em português vs. inglês — não afetam o funcionamento do sistema)
+
+**Arquivos de teste disponíveis:**
+- `backend/tests/test_api.py` — Testes de integração dos endpoints REST (API)
+- `backend/tests/test_chunking.py` — Testes de divisão de texto em chunks
+- `backend/tests/test_config.py` — Testes de configurações e variáveis de ambiente
+- `backend/tests/test_embeddings.py` — Testes de geração de embeddings vetoriais
+- `backend/tests/test_file_loader.py` — Testes de extração de texto de arquivos
+- `backend/tests/test_llm.py` — Testes de comunicação com o modelo de linguagem
+- `backend/tests/test_schemas.py` — Testes de validação de schemas Pydantic
+- `backend/tests/test_storage.py` — Testes de persistência de documentos
+- `backend/tests/test_vector_store.py` — Testes de operações no ChromaDB
+
+> **Importante:** Se você ver 2 falhas relacionadas a `test_unsupported_format_raises_error` e `test_add_chunks_mismatch_raises_error`, saiba que estas são **falhas conhecidas e esperadas**. Elas ocorrem porque o sistema retorna mensagens de erro em português, mas os testes esperam mensagens em inglês. Isso não indica quebra de funcionalidade.
+
+#### Problemas comuns e soluções
+
+**Erro: "pytest não é reconhecido como comando"**
+- **Causa:** O pytest não está instalado.
+- **Solução:** Execute `pip install pytest pytest-asyncio` na pasta `backend`.
+
+**Erro: "ModuleNotFoundError" ao rodar testes**
+- **Causa:** As dependências do projeto não estão instaladas.
+- **Solução:** Execute `pip install -r requirements.txt` na pasta `backend`.
+
+**Erro: "RuntimeError" relacionado ao ChromaDB**
+- **Causa:** O banco de vetores pode estar corrompido ou em uso por outro processo.
+- **Solução:** Pare o backend (se estiver rodando) e execute os testes novamente.
+
+---
+
+## Como as Configurações e Credenciais são Carregadas (Explicação para Iniciantes)
+
+Este projeto usa um sistema chamado **variáveis de ambiente** para armazenar configurações sensíveis (como senhas, URLs de API, caminhos de pastas) sem precisar colocá-las diretamente no código. Isso é uma prática de segurança muito comum no desenvolvimento profissional.
+
+### O que são variáveis de ambiente?
+
+Imagine que o código-fonte é como uma receita de bolo que você compartilha com várias pessoas. Cada pessoa pode ter:
+- Um forno diferente (temperaturas variam)
+- Ingredientes de marcas diferentes
+- Preferências de sabor distintas
+
+As **variáveis de ambiente** são como as anotações pessoais que cada pessoa faz na receita — elas não alteram a receita original, mas adaptam o resultado às condições de cada cozinha.
+
+No mundo da programação, isso significa que:
+- O **mesmo código** pode rodar no computador do desenvolvedor, em um servidor de testes e em um servidor de produção
+- Cada ambiente tem **configurações diferentes** (URLs, senhas, caminhos)
+- Nenhuma credencial sensível fica exposta no código-fonte
+
+### De onde o sistema lê as configurações?
+
+O projeto usa uma biblioteca chamada `pydantic-settings` para buscar configurações em **três lugares diferentes**, em ordem de prioridade:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  ORDEM DE PRIORIDADE (quem ganha quando há conflito)        │
+├─────────────────────────────────────────────────────────────┤
+│  1º → Variáveis do sistema operacional (PATH, etc.)         │
+│  2º → Arquivo .env na pasta backend/                        │
+│  3º → Valores padrão definidos no código (fallback)         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Significado:**
+- Se uma variável existir no **sistema operacional** E no arquivo **.env**, o valor do sistema operacional vence
+- Se uma variável existir apenas no **.env**, ela será usada
+- Se a variável **não existir em lugar nenhum**, o sistema usa o **valor padrão** definido no código
+
+### O arquivo .env (mais comum no dia a dia)
+
+O arquivo `.env` é um arquivo de texto simples que fica na pasta `backend/` e contém as configurações específicas da sua máquina. Ele segue este formato:
+
+```env
+# Nome da aplicação
+APP_NAME="Private Document RAG API"
+
+# CORS — origens permitidas (separadas por vírgula)
+CORS_ORIGINS="http://localhost:5173,http://localhost:3000"
+
+# Modelo de embeddings (HuggingFace)
+EMBEDDING_MODEL="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+
+# Configurações do Ollama
+OLLAMA_BASE_URL="http://localhost:11434"
+OLLAMA_MODEL="llama3.1"
+OLLAMA_TIMEOUT_SECONDS=60
+```
+
+**Regras importantes sobre o .env:**
+1. **Nunca comite o .env no Git** — ele deve ficar no `.gitignore` para não vazar credenciais
+2. **Cada desenvolvedor tem o seu** — você pode ter `llama3.1` enquanto seu colega usa outro modelo
+3. **O formato é simples** — `NOME_DA_VARIAVEL=valor` (sem espaços ao redor do =)
+
+### Como criar o seu arquivo .env
+
+Passo a passo:
+
+1. **Navegue até a pasta do backend:**
+   ```bash
+   cd backend
+   ```
+
+2. **Crie o arquivo .env:**
+   - No Windows: clique com o botão direito → Novo → Documento de texto → renomeie para `.env`
+   - No VS Code: clique em "Novo Arquivo" na barra lateral → salve como `.env`
+
+3. **Copie o conteúdo de exemplo** da seção "Variáveis de Ambiente" abaixo e cole no arquivo
+
+4. **Ajuste os valores** conforme sua máquina (por exemplo, se o Ollama estiver em outra porta)
+
+### O que acontece se eu não criar o .env?
+
+**Nada de errado!** O sistema foi projetado para funcionar sem o arquivo `.env`. Nesse caso, ele usa os **valores padrão** definidos no código:
+
+| Configuração | Valor padrão (se .env não existir) |
+|--------------|-----------------------------------|
+| Nome da aplicação | `Private Document RAG API` |
+| URL do Ollama | `http://localhost:11434` |
+| Modelo LLM | `llama3.1` |
+| Origens CORS | `http://localhost:5173` |
+| Timeout Ollama | `60` segundos |
+| Tamanho dos chunks | `1800` caracteres |
+
+Isso significa que, se você está começando a trabalhar no projeto, **não precisa criar o .env imediatamente** — o sistema funcionará com as configurações padrão.
+
+### Cache das configurações (performance)
+
+O sistema carrega as configurações **uma vez só** quando o backend inicia e guarda em memória (cache). Isso significa:
+- ✅ A primeira requisição lê o arquivo
+- ✅ As requisições seguintes usam o valor em memória (mais rápido)
+- ⚠️ Se você alterar o `.env`, precisa **reiniciar o backend** para as mudanças fazerem efeito
+
+### Resumo para lembrar
+
+```
+Você tem 3 formas de configurar o sistema:
+
+1. Variáveis do sistema operacional  →  Prioridade máxima
+   (ex: set OLLAMA_MODEL=meu-modelo no Windows)
+
+2. Arquivo .env na pasta backend/     →  Prioridade média
+   (ex: OLLAMA_MODEL=meu-modelo dentro do arquivo)
+
+3. Valores padrão no código           →  Prioridade mínima
+   (ex: ollama_model: str = "llama3.1" no config.py)
+```
+
+**Regra de ouro:** Nunca coloque senhas ou credenciais diretamente no código-fonte. Sempre use o arquivo `.env` ou variáveis do sistema.
 
 ---
 
