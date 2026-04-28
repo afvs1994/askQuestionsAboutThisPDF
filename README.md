@@ -588,6 +588,48 @@ A suite de testes cobre todos os componentes do sistema:
 
 ---
 
+## Uso de Inteligência Artificial neste Projeto
+
+Este projeto foi desenvolvido com o auxílio de ferramentas de Inteligência Artificial (IA) para aumentar a produtividade e a qualidade do código. Abaixo, explicamos como essas ferramentas foram utilizadas.
+
+### Por que usar IA no desenvolvimento?
+
+Ferramentas de IA assistem desenvolvedores em tarefas repetitivas, sugestões de código, correção de bugs e documentação. Elas **não substituem** o conhecimento técnico humano, mas agilizam o trabalho diário.
+
+### Ferramentas utilizadas
+
+| Ordem | Ferramenta | Quando foi usada | Função |
+|-------|-----------|------------------|--------|
+| 1º | **GitHub Copilot Chat** | Durante a maior parte do desenvolvimento | Assistente de código integrado ao VS Code. Sugere trechos de código, explica funções, ajuda na correção de erros e gera testes automaticamente. |
+| 2º | **Blackbox Minimax M2.5** | Após esgotar os tokens do GitHub Copilot | Assistente de conversação e geração de código alternativo. Utilizado para continuar o desenvolvimento quando o limite do Copilot foi atingido. |
+
+### O que são "tokens"?
+
+Tokens são a "moeda" que as IAs usam para processar texto. Cada vez que você pede para a IA analisar ou gerar código, ela consome uma quantidade de tokens. Quando o limite mensal é atingido, a ferramenta para de funcionar temporariamente até a renovação.
+
+> **Analogia simples:** Tokens são como minutos de ligação telefônica. Você tem uma franquia mensal e, quando acaba, precisa esperar o próximo ciclo ou usar outro serviço.
+
+### Como a IA foi usada neste projeto
+
+1. **Geração de código boilerplate** — Estruturas iniciais de classes, funções e componentes React
+2. **Documentação** — Geração de docstrings e comentários explicativos
+3. **Testes automatizados** — Criação de casos de teste para o backend
+4. **Correção de bugs** — Análise de erros e sugestões de soluções
+5. **Revisão de código** — Sugestões de melhorias de performance e legibilidade
+
+### Limitações e cuidados
+
+- A IA **não tem acesso** a dados reais dos usuários — ela apenas analisa o código-fonte
+- Todas as sugestões da IA foram **revisadas e validadas** por desenvolvedores humanos
+- A IA pode cometer erros — sempre verifique o código gerado antes de usar em produção
+- O uso da IA **não altera a licença** do projeto nem os direitos autorais
+
+### Transparência
+
+Acreditamos na transparência sobre o uso de IA no desenvolvimento de software. Esta seção existe para que você, como usuário ou contribuidor, saiba como o projeto foi construído e quais ferramentas auxiliaram no processo.
+
+---
+
 ## Licença
 
 Este projeto está licenciado sob a **Apache License 2.0**.
