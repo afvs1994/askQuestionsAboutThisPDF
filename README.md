@@ -590,5 +590,19 @@ A suite de testes cobre todos os componentes do sistema:
 
 ## Licença
 
-Projeto desenvolvido para fins de pesquisa e engenharia.
+Este projeto está licenciado sob a **Apache License 2.0**.
 
+A Apache 2.0 é uma licença permissiva que permite:
+- ✅ Uso comercial
+- ✅ Modificação
+- ✅ Distribuição
+- ✅ Uso em patentes
+
+Com as seguintes condições:
+- ℹ️ Manter o aviso de copyright
+- ℹ️ Documentar alterações significativas
+- ℹ️ Incluir uma cópia da licença
+
+Consulte o arquivo [LICENSE](LICENSE) para o texto completo.
+
+**Resumo:** Você pode usar, modificar e distribuir este código livremente, inclusive em projetos comerciais, desde que mantenha os créditos originais e documente quaisquer mudanças substanciais.
