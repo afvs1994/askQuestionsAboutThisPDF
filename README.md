@@ -1,14 +1,46 @@
 # askQuestionsAboutThisPDF
 
-Projeto de um assistente conversacional baseado em **RAG (Retrieval-Augmented Generation)** para consulta de documentos privados.
+---
 
-Em vez de responder apenas com base no treinamento geral do modelo, o assistente:
+## Descrição do Projeto
 
-1. Recebe uma pergunta do usuário;
-2. Busca informações nos documentos indexados;
-3. Recupera trechos relevantes por similaridade semântica;
-4. Formula a resposta com base **exclusivamente** no contexto recuperado;
-5. Cita as fontes (documento, página, trecho) para verificação.
+O **askQuestionsAboutThisPDF** é um assistente conversacional de código aberto baseado em **RAG (Retrieval-Augmented Generation)** que permite consultar documentos privados de forma inteligente e segura.
+
+### O que é RAG?
+
+RAG é uma técnica de Inteligência Artificial que combina:
+- **Recuperação de informações** — busca automática em documentos
+- **Geração de texto** — criação de respostas naturais por um modelo de linguagem (LLM)
+
+Em vez de depender apenas do conhecimento genérico do modelo, o RAG consulta **documentos específicos do usuário** para responder perguntas com precisão e fundamento.
+
+### Como funciona o software
+
+O assistente segue um pipeline de 5 etapas:
+
+1. **Recebe uma pergunta** do usuário em linguagem natural
+2. **Busca informações** nos documentos previamente indexados
+3. **Recupera trechos relevantes** por similaridade semântica (não apenas palavras-chave)
+4. **Formula a resposta** com base **exclusivamente** no contexto recuperado
+5. **Cita as fontes** — documento, página e trecho exato — para verificação humana
+
+### Diferenciais principais
+
+| Recurso | Benefício |
+|---------|-----------|
+| **Respostas fundamentadas** | Cada resposta é baseada em trechos reais dos seus documentos |
+| **Citação de fontes** | Você pode verificar de onde a informação veio |
+| **Privacidade** | Tudo roda localmente — seus documentos nunca saem da sua máquina |
+| **Filtro por documento** | Limite a busca a um arquivo específico quando souber onde procurar |
+| **Multiformato** | Suporta PDF, DOCX e outros formatos de documento |
+
+### Público-alvo
+
+- **Pesquisadores** — consulta rápida a artigos e relatórios
+- **Engenheiros** — busca em normas técnicas e especificações
+- **Técnicos** — acesso a manuais e procedimentos
+- **Gerentes de engenharia** — síntese de documentos corporativos
+- **Estudantes** — estudo e revisão de materiais acadêmicos
 
 ---
 
@@ -104,6 +136,69 @@ askQuestionsAboutThisPDF/
     ├── uploads/              # Arquivos originais
     └── chroma/               # Banco de vetores ChromaDB
 ```
+
+---
+
+## Instalação
+
+Esta seção explica como instalar todas as dependências necessárias para rodar o projeto pela primeira vez.
+
+### 1. Clonar o repositório
+
+```bash
+git clone <url-do-repositorio>
+cd askQuestionsAboutThisPDF
+```
+
+### 2. Instalar o backend (Python)
+
+O backend requer Python 3.10 ou superior.
+
+```bash
+cd backend
+
+# Criar ambiente virtual (recomendado)
+python -m venv venv
+
+# Ativar o ambiente virtual
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Instalar dependências
+pip install -r requirements.txt
+```
+
+> **O que está sendo instalado?** O arquivo `requirements.txt` contém bibliotecas como FastAPI (API), ChromaDB (banco de vetores), sentence-transformers (embeddings) e pytest (testes).
+
+### 3. Instalar o frontend (Node.js)
+
+O frontend requer Node.js 18 ou superior.
+
+```bash
+cd frontend
+
+# Instalar dependências
+npm install
+```
+
+> **O que está sendo instalado?** O arquivo `package.json` define bibliotecas como React (interface), Vite (build) e TypeScript (tipagem).
+
+### 4. Instalar e configurar o Ollama
+
+O Ollama é o servidor de LLM (Inteligência Artificial) que roda localmente na sua máquina.
+
+1. Baixe e instale o Ollama: https://ollama.com
+2. Baixe o modelo Llama 3.1:
+   ```bash
+   ollama run llama3.1
+   ```
+
+> **Nota para Windows:** Se o comando `ollama` não for reconhecido, use o caminho completo:
+> ```powershell
+> C:\Users\<seu-usuario>\AppData\Local\Programs\Ollama\ollama.exe run llama3.1
+> ```
 
 ---
 
@@ -513,7 +608,7 @@ Response: {
 
 ## Funcionalidades Principais
 
-### ✅ Ingestão Multiformato
+### ✅ Carregamento Multiformato
 - Upload de PDF, DOCX
 - Extração de metadados (páginas)
 
@@ -540,6 +635,116 @@ Response: {
 - Deleção permanente de documentos do repositório
 - Confirmação com botões **SIM** / **NÃO**
 - Limpeza automática de seleção ativa após deleção
+
+---
+
+## Uso (Guia do Usuário)
+
+Esta seção explica como usar a aplicação após ela estar rodando. A interface web está disponível em `http://localhost:5173`.
+
+### Fluxo básico de uso
+
+```
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│  1. Upload   │───▶│ 2. Indexação │───▶│  3. Pergunta │───▶│  4. Resposta │
+│  Documentos  │    │  Automática  │    │    no Chat   │    │  com Fontes  │
+└──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘
+```
+
+### Passo 1: Carregar documentos
+
+1. Na coluna esquerda da tela, localize o painel **"Documentos carregados"**
+2. Clique no botão **"Escolher arquivos"** e selecione um ou mais arquivos PDF ou DOCX
+3. Clique em **"Carregue arquivos"**
+4. Aguarde a mensagem de sucesso — o documento será automaticamente processado, dividido em chunks e indexado
+
+> **O que acontece nos bastidores?** O arquivo é enviado ao backend, o texto é extraído, dividido em pedaços (chunks), convertido em vetores numéricos (embeddings) e armazenado no banco de dados vetorial ChromaDB.
+
+### Passo 2: Verificar documentos indexados
+
+Abaixo do painel de upload, o painel **"Documentos indexados"** mostra todos os documentos já processados. Cada item exibe:
+- Nome do arquivo
+- Tipo do documento
+- Quantidade de chunks gerados
+
+### Passo 3: Filtrar o escopo de busca (opcional)
+
+No painel **"Filtro de documentos"**, você pode:
+- Deixar em **"Todos os documentos do repositório"** para pesquisar em tudo
+- Selecionar um **documento específico** para limitar a resposta a apenas aquele arquivo
+
+> **Quando usar?** Se você sabe que a resposta está em um documento específico, o filtro melhora a precisão e reduz o tempo de processamento.
+
+### Passo 4: Fazer uma pergunta
+
+1. Na coluna direita, localize o painel **"Faça uma pergunta"**
+2. Digite sua pergunta em linguagem natural no campo de texto
+   - Exemplo: *"Quais são os requisitos de segurança elétrica mencionados na norma?"*
+   - Exemplo: *"Liste os materiais utilizados no transformador descrito."*
+3. Clique em **"Faça uma pergunta"**
+4. Aguarde a resposta — o tempo varia conforme o tamanho do documento e a complexidade da pergunta
+
+### Passo 5: Verificar as fontes
+
+Abaixo da resposta, o painel **"Lista de fontes"** mostra:
+- Trechos exatos dos documentos usados para gerar a resposta
+- Nome do arquivo de origem
+- Número da página (para PDFs)
+- Score de similaridade (quanto mais próximo de 1.0, mais relevante)
+
+> **Por que isso importa?** As fontes permitem verificar se a resposta do assistente está fundamentada nos documentos reais e não em "alucinações" da IA.
+
+### Passo 6: Deletar documentos
+
+Para remover documentos do repositório:
+
+1. **Deletar todos:** Clique no botão vermelho **"⚠️ Deletar todos os documentos"** no painel de filtro. Uma janela de confirmação aparecerá com botões **SIM** / **NÃO**.
+2. **Deletar individual:** Cada documento na lista possui um botão de exclusão individual.
+
+> ⚠️ **Atenção:** A deleção é permanente. Os arquivos, metadados e vetores associados são removidos irreversivelmente.
+
+---
+
+## Limitações
+
+Esta seção descreve o que o sistema **não faz** ou onde pode apresentar comportamentos inesperados.
+
+### Limitações técnicas
+
+| Limitação | Descrição | Impacto |
+|-----------|-----------|---------|
+| **Formatos suportados** | Apenas PDF, DOCX e DOC | Arquivos como XLSX, PPTX, imagens escaneadas não são processados |
+| **Texto em imagens** | Não extrai texto de imagens dentro de PDFs | Documentos escaneados ou com diagramas complexos perdem informação |
+| **Modelo local** | Depende do Ollama rodando na máquina | Requer hardware adequado (RAM, GPU opcional) e tempo de inicialização |
+| **Contexto limitado** | O LLM tem limite de tokens de contexto | Documentos muito grandes podem não ter todo o conteúdo considerado |
+| **Busca semântica** | Baseada em similaridade, não em palavras exatas | Pode não encontrar termos técnicos muito específicos ou siglas |
+
+### Limitações de performance
+
+- **Tempo de resposta:** Perguntas complexas em documentos grandes podem levar de 10 a 60 segundos
+- **Consumo de memória:** O modelo de embeddings e o ChromaDB ocupam espaço em disco e RAM
+- **Processamento inicial:** O upload e indexação de um documento grande pode levar vários minutos
+
+### Limitações de precisão
+
+- **Alucinações:** Embora o RAG reduza significativamente o risco, o LLM pode ocasionalmente interpretar incorretamente o contexto
+- **Dependência da qualidade do documento:** PDFs mal formatados ou com texto corrompido geram chunks de baixa qualidade
+- **Idioma misto:** Documentos com múltiplos idiomas podem ter resultados de busca menos precisos
+
+### Cenários não suportados
+
+- ❌ Processamento de documentos criptografados ou protegidos por senha
+- ❌ Extração automática de tabelas em formato estruturado (o texto é extraído, mas a formatação é perdida)
+- ❌ Síntese de múltiplos documentos com comparação automática
+- ❌ Operação offline completa (o frontend requer conexão com o backend)
+- ❌ Suporte a múltiplos usuários simultâneos com isolamento de dados
+
+### Recomendações de uso
+
+- ✅ Verifique sempre as fontes citadas antes de tomar decisões críticas
+- ✅ Use o filtro de documentos para melhorar a precisão em perguntas específicas
+- ✅ Prefira documentos com texto selecionável (não escaneados)
+- ✅ Divida perguntas muito amplas em perguntas menores e mais específicas
 
 ---
 
