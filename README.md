@@ -24,6 +24,97 @@ O assistente segue um pipeline de 5 etapas:
 4. **Formula a resposta** com base **exclusivamente** no contexto recuperado
 5. **Cita as fontes** — documento, página e trecho exato — para verificação humana
 
+## Técnica de Resposta e Pontuação de Citações
+
+Esta seção explica **como o sistema gera respostas** e **como as citações são pontuadas**, detalhando o pipeline RAG completo.
+
+### Fluxo Técnico Completo (RAG Pipeline)
+
+Quando você envia uma pergunta via `/api/chat`, o sistema executa estas etapas **automaticamente**:
+
+```
+Pergunta do usuário
+         ↓
+1. EMBEDDING da pergunta → vetor numérico (SentenceTransformers)
+         ↓
+2. BUSCA no ChromaDB → top-K chunks mais similares (similaridade cosseno)
+         ↓
+3. CONTEXTOS selecionados → prompt estruturado para LLM (Ollama/Llama3.1)
+         ↓
+4. RESPOSTA gerada → texto natural + lista de fontes
+         ↓
+Retorno JSON para frontend
+```
+
+### O que é o "Score" das Citações?
+
+O **score** (0.0 a 1.0) representa a **similaridade semântica** entre:
+- Sua pergunta (convertida em vetor)
+- O trecho do documento (também vetorizado)
+
+**Fórmula técnica**: Similaridade Cosseno
+```
+score = (A · B) / (|A| × |B|)
+```
+- `A · B`: Produto escalar dos vetores
+- `|A|`, `|B|`: Magnitude (norma) de cada vetor
+- **Interpretação**:
+  | Score | Significado |
+  |-------|-------------|
+  | >0.85 | **Alta relevância** — trecho essencial para resposta |
+  | 0.70-0.85 | **Relevante** — contexto de suporte |
+  | 0.50-0.70 | **Parcial** — pode ter sido usado como fundo |
+  | <0.50 | **Baixa** — improvável de ter influenciado |
+
+### Exemplo de Resposta JSON
+
+```json
+{
+  "answer": "A norma IEC 61850 define os requisitos de comunicação...",
+  "sources": [
+    {
+      "document_id": "norma_iec.pdf",
+      "filename": "IEC_61850_v2.pdf",
+      "page": 45,
+      "chunk_index": 23,
+      "excerpt": "A comunicação entre IEDs deve seguir protocolo MMS...",
+      "score": 0.9234  // 92% de similaridade
+    },
+    {
+      "document_id": "manual_transformador.pdf",
+      "filename": "Manual_Transformador.pdf",
+      "page": 12,
+      "chunk_index": 7,
+      "excerpt": "Requisitos de segurança incluem...",
+      "score": 0.8142  // 81% de similaridade
+    }
+  ]
+}
+```
+
+### Detalhes da Seleção de Citações
+
+| Parâmetro | Valor Padrão | Efeito |
+|-----------|--------------|--------|
+| `top_k` | 5 | Número máximo de chunks recuperados |
+| Similaridade mínima | 0.5 | Chunks abaixo disso são descartados |
+| Overlap | 1 sentença | Evita perda de contexto na divisão |
+| Prompt size | ~4000 tokens | Limite de contexto do LLM |
+
+**Por que top-5?** Equilíbrio entre:
+- ✅ Precisão (múltiplas perspectivas)
+- ✅ Performance (não sobrecarregar o LLM)
+- ✅ Concisão (não poluir a resposta)
+
+### Vantagens desta Abordagem
+
+✅ **Transparente** — você vê exatamente de onde veio cada informação  
+✅ **Verificável** — clique nas fontes para contexto completo  
+✅ **Eficiente** — busca vetorial em milissegundos  
+✅ **Robusta** — funciona com sinônimos e reformulações  
+
+> **Dica:** Scores altos (>0.85) indicam trechos centrais. Use-os como referência primária.
+
 ### Diferenciais principais
 
 | Recurso | Benefício |
