@@ -1,0 +1,127 @@
+# .gitignore para askQuestionsAboutThisPDF
+# Licença: Apache 2.0
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Ambientes virtuais Python
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Backend específico
+backend/data/
+backend/data/uploads/
+backend/data/chroma/
+backend/data/documents.json
+backend/pytest_result.txt
+backend/test_*.txt
+backend/.pytest_cache/
+backend/__pycache__/
+backend/app/__pycache__/
+backend/tests/__pycache__/
+backend/venv/
+backend/.env
+backend/.env.bak
+
+# Frontend
+frontend/dist/
+frontend/node_modules/
+frontend/npm_install.log
+frontend/*.log
+frontend/tsconfig.tsbuildinfo
+frontend/tsconfig.node.tsbuildinfo
+
+# Logs e temp
+*.log
+backend_log.txt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/*.code-workspace
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+Dockerfile.*
+.dockerignore
+
+# Dados sensíveis
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+
+# Testes e builds
+test_*.txt
+test_payload.json
+test_doc.txt
+TODO_DELETE.md
+.pytest_cache/
+.coverage
+htmlcov/
+.cache/
+.nyc_output/
+coverage.xml
+*.cover
+*.lcov
+
+# Node
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Ollama (não versionado)
+ollama/
+
+# Arquivos temporários do projeto
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+">
+</xai:function_call >  </xai:function_call >  
+</xai:function_call >  
+</xai:function_call >.gitignore
