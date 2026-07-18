@@ -839,6 +839,73 @@ Esta seção descreve o que o sistema **não faz** ou onde pode apresentar compo
 
 ---
 
+## Análise de riscos e impactos
+
+Com base no fluxo atual de ingestão, indexação, recuperação e resposta deste projeto, é importante tratar a solução não apenas como um produto técnico, mas como um serviço que pode influenciar decisões, processos e confiança nas informações consultadas. A análise abaixo considera as regras de negócio já implementadas e os limites do sistema, com foco na relação entre a equipe executora (desenvolvedores de software) e a área preponente (responsável por definir o contexto de uso, os critérios de aceitação e a relevância do resultado para o negócio).
+
+### Regras de negócio que orientam a análise
+
+- O sistema aceita documentos privados e realiza processamento local, com armazenamento de arquivos, metadados e vetores em repositório controlado.
+- As respostas devem ser fundamentadas em trechos reais dos documentos e devem trazer fontes/citações para verificação humana.
+- O escopo de busca pode ser global ou limitado a um documento específico, o que altera diretamente a precisão e o custo de processamento.
+- A exclusão de documentos é permanente e remove arquivos originais, registros e vetores associados.
+- O funcionamento depende de infraestrutura local e de componentes externos como Ollama, embeddings e banco vetorial.
+- A solução atual não implementa isolamento multiusuário, controle avançado de permissões nem auditoria completa de acesso.
+
+### Riscos principais, impactos e estratégias de resposta
+
+1. Resposta incorreta, incompleta ou improvável
+- Risco: o modelo pode gerar respostas que pareçam corretas, mas estejam mal fundamentadas, especialmente em documentos mal formatados, ambíguos ou muito extensos.
+- Impacto: perda de confiança no sistema, uso indevido para decisão técnica ou gerencial e retrabalho na validação humana.
+- Estratégia de resposta: manter as fontes sempre visíveis, exigir checagem das citações antes de uso decisório, definir que respostas com baixa confiança devem ser tratadas como sugestões e não como fatos absolutos, e registrar em backlog os casos que exigem melhoria de prompt, chunking ou qualidade do documento.
+
+2. Qualidade do conteúdo carregado
+- Risco: documentos com texto escaneado, corrompido, incompleto ou com estrutura ruim podem gerar chunks de baixa qualidade e comprometer a recuperação semântica.
+- Impacto: respostas vagas, omissões relevantes ou percepção de falha do sistema mesmo quando a infraestrutura esteja correta.
+- Estratégia de resposta: estabelecer critérios de entrada para documentos aceitos, validar formato e legibilidade antes do upload, e manter comunicação com a área preponente para definir quais tipos de arquivo são realmente relevantes para o uso esperado.
+
+3. Dependência de infraestrutura local
+- Risco: o funcionamento depende de Ollama, modelo de embeddings, ChromaDB e ambiente local, o que pode gerar indisponibilidade ou variações de desempenho.
+- Impacto: interrupção do fluxo de trabalho, atrasos na resposta e risco de falhas operacionais em ambientes de uso real.
+- Estratégia de resposta: documentar pré-requisitos, criar checklist de instalação e execução, registrar falhas em um canal de acompanhamento e definir um plano de contingência quando o componente local não estiver disponível.
+
+4. Risco de uso indevido de dados ou exposição de informações sensíveis
+- Risco: como o sistema processa documentos privados e armazena cópias locais, há risco de uso indevido se o ambiente não for devidamente controlado.
+- Impacto: vazamento de conteúdo, violação de confidencialidade, desconfiança do usuário e possível impacto regulatório, dependendo do tipo de documento.
+- Estratégia de resposta: tratar o projeto como solução com dados sensíveis, reforçar o uso de ambiente controlado, restringir o acesso a quem precisa utilizar o sistema, e manter a área preponente informada sobre quaisquer mudanças que alterem o modelo de segurança ou o tratamento do conteúdo.
+
+5. Divergência entre expectativa do negócio e comportamento técnico atual
+- Risco: a área preponente pode esperar respostas mais exatas, determinísticas ou comparativas, enquanto o sistema atual opera por recuperação semântica e geração baseada em contexto.
+- Impacto: insatisfação, retrabalho e aceitação limitada da solução.
+- Estratégia de resposta: alinhar requisitos desde o início, registrar premissas e limitações em linguagem simples, demonstrar o comportamento real do sistema em cenários de teste com documentos reais, e revisar continuamente os critérios de aceitação com a área preponente.
+
+6. Escalabilidade e desempenho
+- Risco: documentos grandes, perguntas complexas ou grande volume de uploads podem aumentar tempo de resposta e consumo de recursos.
+- Impacto: degradação da experiência do usuário, redução de produtividade e possível abandono do uso do sistema.
+- Estratégia de resposta: estabelecer limites de uso em fases iniciais, priorizar cenários mais críticos, monitorar tempo de resposta e volume de processamento, e definir critérios claros para evolução do sistema em versões futuras.
+
+### Estratégia de comunicação entre a equipe executora e a área preponente
+
+A comunicação deve ser contínua, objetiva e orientada por evidência. Recomenda-se:
+
+- Manter reuniões periódicas curtas para revisar status, riscos, bloqueios e prioridades.
+- Usar um canal único de acompanhamento com registro de decisões, pendências e critérios de aceitação.
+- Apresentar demonstrações com documentos reais, ao invés de cenários sintéticos, para reduzir desalinhamento de expectativas.
+- Definir claramente para cada mudança: objetivo, impacto esperado, risco associado, dependência técnica e responsável pelo acompanhamento.
+- Classificar problemas por severidade, por exemplo: bloqueador de uso, falha de precisão, problema de performance ou ajuste de experiência.
+- Sempre informar a área preponente quando houver alteração em comportamento do sistema, limitações técnicas ou risco de resposta incorreta, para que o uso do produto seja feito com consciência do contexto.
+
+### Recomendações de governança para a fase de execução
+
+- Validar a solução com documentos representativos do uso real antes de ampliar o escopo.
+- Estabelecer um checklist de aceite para upload, indexação, busca, citação e deleção.
+- Garantir que cada resposta entregue ao usuário possa ser rastreada até o trecho do documento que a fundamentou.
+- Manter a área preponente envolvida em validações parciais, para que o produto evolua com base em retorno prático e não apenas em premissas técnicas.
+
+Essas medidas ajudam a reduzir riscos de confiança, qualidade e operação, ao mesmo tempo em que melhoram a transparência entre desenvolvimento e negócio.
+
+---
+
 ## Testes
 
 A suite de testes cobre todos os componentes do sistema:
