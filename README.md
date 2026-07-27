@@ -912,69 +912,123 @@ Esta seção consolida a compreensão do projeto em termos de requisitos, regras
 
 ### Requisitos funcionais
 
-- RF01 — O sistema deve permitir o upload de um ou mais documentos em formatos suportados (PDF e DOCX).
-- RF02 — O sistema deve extrair texto de documentos suportados e preservar metadados de localização, como página, planilha e linhas, quando disponíveis.
-- RF03 — O sistema deve dividir o conteúdo extraído em chunks e indexá-los para busca semântica.
-- RF04 — O sistema deve gerar embeddings para os chunks e armazená-los em um repositório vetorial local.
-- RF05 — O sistema deve permitir perguntas em linguagem natural e responder com base no contexto recuperado dos documentos.
-- RF06 — O sistema deve retornar para o usuário as fontes/citações que fundamentaram a resposta, incluindo documento, trecho e score de similaridade.
-- RF07 — O sistema deve permitir restringir a busca a um documento específico ou pesquisar em todo o repositório.
-- RF08 — O sistema deve permitir a remoção individual ou em massa de documentos, incluindo arquivos originais, registros e vetores associados.
-- RF09 — O sistema deve expor endpoints REST para health check, listagem de documentos, upload e chat.
-- RF10 — O sistema deve oferecer uma interface web para upload, filtragem e interação com o assistente.
+| ID | Descrição do Requisito | Prioridade | Origem | Verificação | Status |
+|---|---|---|---|---|---|
+| RF-01 | O sistema deve permitir o upload de um ou mais documentos em formatos suportados, incluindo PDF, DOCX e XLSX. | Alta | Negócio / Interface | Validar por teste de interface e endpoint de upload | Em desenvolvimento |
+| RF-02 | O sistema deve extrair texto dos documentos carregados e preservar metadados de localização, como página, planilha e linhas, quando disponíveis. | Alta | Requisito técnico | Validar por testes de extração de arquivos e inspeção dos resultados | Em desenvolvimento |
+| RF-03 | O sistema deve dividir o conteúdo extraído em chunks e indexá-los para busca semântica. | Alta | Arquitetura do RAG | Validar pela criação de chunks e indexação no vetor store | Em desenvolvimento |
+| RF-04 | O sistema deve gerar embeddings para os chunks e armazená-los localmente para recuperação posterior. | Alta | Arquitetura do RAG | Validar pela geração e persistência dos embeddings | Em desenvolvimento |
+| RF-05 | O sistema deve permitir perguntas em linguagem natural e responder com base no contexto recuperado dos documentos. | Alta | Negócio / Usuário | Validar por testes de chat com documentos reais | Em desenvolvimento |
+| RF-06 | O sistema deve retornar fontes/citações para cada resposta, incluindo documento, trecho e score de similaridade. | Alta | Requisito de rastreabilidade | Validar por testes de resposta e inspeção das fontes | Em desenvolvimento |
+| RF-07 | O sistema deve permitir restringir a busca a um documento específico ou pesquisar em todo o repositório. | Média | Interface / Requisito de usabilidade | Validar pelo filtro de documentos na interface e pelo parâmetro document_id na API | Em desenvolvimento |
+| RF-08 | O sistema deve permitir a remoção individual ou em massa de documentos, incluindo arquivos originais, metadados e vetores associados. | Média | Requisito operacional | Validar por testes de exclusão e verificação do estado do repositório | Em desenvolvimento |
+| RF-09 | O sistema deve expor endpoints REST para health check, listagem de documentos, upload e chat. | Alta | Arquitetura de API | Validar pela execução dos endpoints e contratos de resposta | Em desenvolvimento |
+| RF-10 | O sistema deve oferecer uma interface web para upload, filtragem de documentos e interação com o assistente. | Alta | Requisito de experiência do usuário | Validar por navegação funcional e testes de interface | Em desenvolvimento |
 
 ### Requisitos não funcionais
 
-- RNF01 — O sistema deve operar localmente, preservando a privacidade dos documentos e evitando dependência de serviços externos para o fluxo principal.
-- RNF02 — O sistema deve fornecer respostas com fundamentação textual e rastreabilidade até o trecho do documento utilizado.
-- RNF03 — O sistema deve apresentar tempo de resposta aceitável para cenários de uso comum, embora documentos grandes e perguntas complexas possam exigir mais tempo.
-- RNF04 — O sistema deve ser resiliente a entradas inválidas, retornando mensagens claras para erros de upload, formato não suportado ou falha de processamento.
-- RNF05 — O sistema deve manter consistência entre metadados, arquivos armazenados e índice vetorial.
-- RNF06 — O sistema deve ser compatível com ambientes de desenvolvimento local e com a execução em máquinas com recursos modestos, embora o desempenho dependa do hardware disponível.
-- RNF07 — O sistema deve permitir evolução incremental sem que a interface e a API deixem de ser compreensíveis para novos desenvolvedores.
+| ID | Descrição do Requisito | Tipo | Prioridade | Verificação | Status |
+|---|---|---|---|---|---|
+| RNF-01 | O sistema deve operar localmente, preservando a privacidade dos documentos e reduzindo dependência de serviços externos para o fluxo principal. | Segurança / Privacidade | Alta | Validar por execução local e inspeção da arquitetura de armazenamento | Em desenvolvimento |
+| RNF-02 | O sistema deve fornecer respostas com fundamentação textual e rastreabilidade até o trecho do documento utilizado. | Confiabilidade / Usabilidade | Alta | Validar por testes de resposta e presença de fontes | Em desenvolvimento |
+| RNF-03 | O sistema deve apresentar tempo de resposta aceitável para cenários de uso comum, embora documentos grandes ou perguntas complexas possam exigir mais tempo. | Desempenho | Média | Medir tempo de resposta em cenários de teste | Em desenvolvimento |
+| RNF-04 | O sistema deve ser resiliente a entradas inválidas, retornando mensagens claras para erros de upload, formato não suportado ou falha de processamento. | Robustez / Usabilidade | Alta | Validar por testes de erro e mensagens retornadas | Em desenvolvimento |
+| RNF-05 | O sistema deve manter consistência entre metadados, arquivos armazenados e índice vetorial. | Integridade / Confiabilidade | Alta | Validar por testes de sincronização e exclusão | Em desenvolvimento |
+| RNF-06 | O sistema deve ser compatível com ambientes de desenvolvimento local e com execução em máquinas com recursos modestos, embora o desempenho dependa do hardware disponível. | Compatibilidade / Eficiência | Média | Validar por execução em ambiente local padrão | Em desenvolvimento |
+| RNF-07 | O sistema deve permitir evolução incremental sem comprometer a compreensão da interface e da API por novos desenvolvedores. | Manutenibilidade / Usabilidade | Média | Revisar a clareza da estrutura de módulos e documentação | Em desenvolvimento |
 
 ### Regras de negócio
 
-- O processamento deve considerar documentos privados e não deve depender da publicação dos arquivos em ambientes externos.
-- Respostas devem ser baseadas em trechos reais dos documentos e não em conhecimento genérico do modelo.
-- A busca pode ser global ou filtrada por documento, alterando o escopo e a precisão da resposta.
-- A entrada de pergunta deve ser válida e não vazia.
-- O número de chunks recuperados para uma consulta deve respeitar limites definidos pela aplicação.
-- A remoção de documentos deve ser permanente e irreversível, com limpeza do registro e dos vetores associados.
-- Apenas formatos previamente suportados devem ser aceitos para ingestão.
+| ID | Regra | Onde é aplicada | Status |
+|---|---|---|---|
+| RN-01 | O processamento deve considerar documentos privados e não deve depender da publicação dos arquivos em ambientes externos. | Backend / Armazenamento local | Em desenvolvimento |
+| RN-02 | As respostas devem ser baseadas em trechos reais dos documentos e não em conhecimento genérico do modelo. | Pipeline RAG / Resposta do chat | Em desenvolvimento |
+| RN-03 | A busca pode ser global ou filtrada por documento, alterando o escopo e a precisão da resposta. | Interface de filtro / API de chat | Em desenvolvimento |
+| RN-04 | A entrada de pergunta deve ser válida e não vazia. | API de chat / Schema de validação | Em desenvolvimento |
+| RN-05 | O número de chunks recuperados para uma consulta deve respeitar limites definidos pela aplicação. | Configuração / Busca vetorial | Em desenvolvimento |
+| RN-06 | A remoção de documentos deve ser permanente e irreversível, com limpeza do registro, dos arquivos e dos vetores associados. | Interface e API de deleção | Em desenvolvimento |
+| RN-07 | Apenas formatos previamente suportados devem ser aceitos para ingestão. | Loader de arquivos / Upload | Em desenvolvimento |
 
 ### Lacunas e ambiguidades
 
-- O projeto não define ainda um modelo formal de autenticação, autorização e controle de acesso por usuário.
-- Não há regra explícita para versionamento, histórico ou rastreio de alterações em documentos já indexados.
-- Não existe política formal de retenção, exclusão automática ou backup dos dados armazenados.
-- Não está definido como o sistema deve tratar documentos sensíveis em ambientes compartilhados ou multiusuário.
-- A definição de nível de confiança da resposta ainda é ambígua; o sistema exibe scores, mas não há regra clara de aprovação ou bloqueio automático de respostas com baixa confiança.
-- Não há critério formal de aceitação para qualidade de resposta, abrangência do contexto e tolerância a erros de extração.
-- O projeto não especifica ainda o cenário de falha para indisponibilidade do Ollama, do embedding model ou do banco vetorial.
+| ID | Descrição | Tipo | Severidade |
+|---|---|---|---|
+| LA-01 | Não há modelo formal de autenticação, autorização e controle de acesso por usuário. | Lacuna | Alta |
+| LA-02 | Não existe regra explícita para versionamento, histórico ou rastreio de alterações em documentos já indexados. | Lacuna | Média |
+| LA-03 | Não há política formal de retenção, exclusão automática ou backup dos dados armazenados. | Lacuna | Média |
+| LA-04 | Não está definido como o sistema deve tratar documentos sensíveis em ambientes compartilhados ou multiusuário. | Ambiguidade | Alta |
+| LA-05 | A definição de nível de confiança da resposta é ambígua, pois o sistema exibe scores, mas não define regra de aprovação ou bloqueio automático. | Ambiguidade | Alta |
+| LA-06 | Não há critério formal de aceitação para qualidade da resposta, abrangência do contexto e tolerância a erros de extração. | Inconsistência | Média |
+| LA-07 | Não há cenário explicitamente especificado para indisponibilidade de Ollama, do modelo de embeddings ou do banco vetorial. | Lacuna | Média |
 
-### Artefatos de especificação mais adequados
+### Casos de uso
 
-Os artefatos abaixo são os mais adequados para representar a solução proposta, considerando o estágio atual do projeto:
+#### UC-01 — Fazer upload de documentos
+- Ator principal: usuário
+- Objetivo: carregar um ou mais documentos para compor a base de conhecimento.
+- Fluxo principal: o usuário seleciona arquivos, envia para o sistema, o backend processa o conteúdo, gera chunks e indexa os dados.
+- Fluxo alternativo: o sistema rejeita formatos não suportados e informa o erro.
 
-- Backlog de produto e histórias de usuário: ideais para detalhar valor, prioridade e entregas incrementais do assistente.
-- Casos de uso e cenários de operação: úteis para descrever ações como fazer upload, filtrar documentos, fazer perguntas e excluir documentos.
-- Especificação de API: essencial para formalizar endpoints, payloads, respostas, status codes e regras de validação.
-- Modelo de dados e dicionário de dados: adequado para representar documentos, chunks, metadados, respostas e fontes retornadas pela API.
-- Diagramas de fluxo e sequência: ajudam a mostrar o caminho completo desde o upload até a resposta do chat, incluindo a interação entre frontend, API, serviços e componentes de IA.
-- Matriz de requisitos com critérios de aceitação: facilita a validação de implementação, rastreio de mudanças e alinhamento entre equipe executora e área preponente.
+#### UC-02 — Consultar documentos por pergunta
+- Ator principal: usuário
+- Objetivo: obter uma resposta com base nos documentos carregados.
+- Fluxo principal: o usuário digita uma pergunta, o sistema recupera contexto relevante, gera a resposta e exibe as fontes.
+- Fluxo alternativo: o sistema informa que não encontrou contexto suficiente para responder.
 
-### Sugestão de composição mínima para a próxima fase
+#### UC-03 — Filtrar a busca por documento
+- Ator principal: usuário
+- Objetivo: limitar a busca a um documento específico.
+- Fluxo principal: o usuário seleciona um documento no filtro e realiza a pergunta.
+- Fluxo alternativo: o usuário mantém o escopo global e a busca percorre todos os documentos.
 
-Para evoluir a especificação de forma prática, recomenda-se consolidar os seguintes artefatos em conjunto:
+#### UC-04 — Excluir documentos
+- Ator principal: usuário administrativo ou responsável pelo repositório
+- Objetivo: remover permanentemente documentos do sistema.
+- Fluxo principal: o usuário confirma a exclusão e o sistema remove arquivos, metadados e vetores.
+- Fluxo alternativo: o sistema cancela a ação se o usuário confirmar a negativa do diálogo de confirmação.
 
-1. Uma matriz de requisitos funcionais e não funcionais com prioridade e criticidade.
-2. Um conjunto de histórias de usuário com critérios de aceitação.
-3. Um documento de API contendo exemplos de request/response para upload, chat e deleção.
-4. Um diagrama de fluxo principal do processo de ingestão e resposta.
-5. Um registro de riscos e dependências técnicas para acompanhamento contínuo.
+### Histórias de usuário
 
-Esses artefatos permitem transformar o entendimento atual do projeto em uma especificação mais objetiva, facilitando a comunicação entre desenvolvimento, negócios e validação de solução.
+- Como usuário, quero fazer upload de documentos para que o sistema possa responder perguntas com base no conteúdo carregado.
+- Como usuário, quero formular perguntas em linguagem natural para obter respostas rápidas e contextualizadas.
+- Como usuário, quero visualizar as fontes da resposta para validar a fundamentação da informação.
+- Como usuário, quero filtrar a busca por um documento específico para melhorar a precisão das respostas.
+- Como usuário, quero remover documentos do repositório para manter a base de conhecimento atualizada.
+
+### Critérios de aceitação
+
+- CA-01 — Um upload válido deve gerar documento indexado e disponível para consulta.
+- CA-02 — Uma pergunta vazia deve ser rejeitada com mensagem de erro clara.
+- CA-03 — Uma resposta deve incluir fontes quando houver contexto recuperado.
+- CA-04 — Um documento removido deve deixar de aparecer na lista e não deve mais ser recuperado em consultas.
+- CA-05 — Um formato não suportado deve ser rejeitado sem indexação parcial.
+
+### Protótipo da tela do RAG
+
+A tela principal do RAG pode ser representada como um layout dividido em três áreas principais:
+
+1. Painel lateral esquerdo: upload de documentos e lista de documentos carregados.
+2. Centro: filtro de escopo do repositório e campo de pergunta.
+3. Painel lateral direito: resposta do assistente e lista de fontes/citações.
+
+Exemplo conceitual de estrutura:
+
+```text
++---------------------------------------------------------------+
+| Assistente conversacional baseado em RAG                     |
++---------------------------------------------------------------+
+| Documentos carregados | Filtro de documentos | Pergunta      |
+| - Upload             | - Todos os docs      | [campo]      |
+| - Lista documentos   | - Documento X        | [Enviar]     |
++---------------------------------------------------------------+
+| Resposta do assistente                                       |
+| "Com base nos documentos, ..."                               |
+| Fonte 1: documento.pdf | página 12 | score 0.91              |
+| Fonte 2: manual.docx | trecho ...                             |
++---------------------------------------------------------------+
+```
+
+Esse protótipo representa a experiência central do sistema: carregamento de documentos, consulta contextualizada e validação por fontes.
 
 ---
 
