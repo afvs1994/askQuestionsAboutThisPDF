@@ -906,6 +906,78 @@ Essas medidas ajudam a reduzir riscos de confiança, qualidade e operação, ao 
 
 ---
 
+## Elicitação de requisitos
+
+Esta seção consolida a compreensão do projeto em termos de requisitos, regras de negócio, lacunas e artefatos de especificação, com base no fluxo atual implementado no backend, no frontend e nos contratos da API.
+
+### Requisitos funcionais
+
+- RF01 — O sistema deve permitir o upload de um ou mais documentos em formatos suportados (PDF e DOCX).
+- RF02 — O sistema deve extrair texto de documentos suportados e preservar metadados de localização, como página, planilha e linhas, quando disponíveis.
+- RF03 — O sistema deve dividir o conteúdo extraído em chunks e indexá-los para busca semântica.
+- RF04 — O sistema deve gerar embeddings para os chunks e armazená-los em um repositório vetorial local.
+- RF05 — O sistema deve permitir perguntas em linguagem natural e responder com base no contexto recuperado dos documentos.
+- RF06 — O sistema deve retornar para o usuário as fontes/citações que fundamentaram a resposta, incluindo documento, trecho e score de similaridade.
+- RF07 — O sistema deve permitir restringir a busca a um documento específico ou pesquisar em todo o repositório.
+- RF08 — O sistema deve permitir a remoção individual ou em massa de documentos, incluindo arquivos originais, registros e vetores associados.
+- RF09 — O sistema deve expor endpoints REST para health check, listagem de documentos, upload e chat.
+- RF10 — O sistema deve oferecer uma interface web para upload, filtragem e interação com o assistente.
+
+### Requisitos não funcionais
+
+- RNF01 — O sistema deve operar localmente, preservando a privacidade dos documentos e evitando dependência de serviços externos para o fluxo principal.
+- RNF02 — O sistema deve fornecer respostas com fundamentação textual e rastreabilidade até o trecho do documento utilizado.
+- RNF03 — O sistema deve apresentar tempo de resposta aceitável para cenários de uso comum, embora documentos grandes e perguntas complexas possam exigir mais tempo.
+- RNF04 — O sistema deve ser resiliente a entradas inválidas, retornando mensagens claras para erros de upload, formato não suportado ou falha de processamento.
+- RNF05 — O sistema deve manter consistência entre metadados, arquivos armazenados e índice vetorial.
+- RNF06 — O sistema deve ser compatível com ambientes de desenvolvimento local e com a execução em máquinas com recursos modestos, embora o desempenho dependa do hardware disponível.
+- RNF07 — O sistema deve permitir evolução incremental sem que a interface e a API deixem de ser compreensíveis para novos desenvolvedores.
+
+### Regras de negócio
+
+- O processamento deve considerar documentos privados e não deve depender da publicação dos arquivos em ambientes externos.
+- Respostas devem ser baseadas em trechos reais dos documentos e não em conhecimento genérico do modelo.
+- A busca pode ser global ou filtrada por documento, alterando o escopo e a precisão da resposta.
+- A entrada de pergunta deve ser válida e não vazia.
+- O número de chunks recuperados para uma consulta deve respeitar limites definidos pela aplicação.
+- A remoção de documentos deve ser permanente e irreversível, com limpeza do registro e dos vetores associados.
+- Apenas formatos previamente suportados devem ser aceitos para ingestão.
+
+### Lacunas e ambiguidades
+
+- O projeto não define ainda um modelo formal de autenticação, autorização e controle de acesso por usuário.
+- Não há regra explícita para versionamento, histórico ou rastreio de alterações em documentos já indexados.
+- Não existe política formal de retenção, exclusão automática ou backup dos dados armazenados.
+- Não está definido como o sistema deve tratar documentos sensíveis em ambientes compartilhados ou multiusuário.
+- A definição de nível de confiança da resposta ainda é ambígua; o sistema exibe scores, mas não há regra clara de aprovação ou bloqueio automático de respostas com baixa confiança.
+- Não há critério formal de aceitação para qualidade de resposta, abrangência do contexto e tolerância a erros de extração.
+- O projeto não especifica ainda o cenário de falha para indisponibilidade do Ollama, do embedding model ou do banco vetorial.
+
+### Artefatos de especificação mais adequados
+
+Os artefatos abaixo são os mais adequados para representar a solução proposta, considerando o estágio atual do projeto:
+
+- Backlog de produto e histórias de usuário: ideais para detalhar valor, prioridade e entregas incrementais do assistente.
+- Casos de uso e cenários de operação: úteis para descrever ações como fazer upload, filtrar documentos, fazer perguntas e excluir documentos.
+- Especificação de API: essencial para formalizar endpoints, payloads, respostas, status codes e regras de validação.
+- Modelo de dados e dicionário de dados: adequado para representar documentos, chunks, metadados, respostas e fontes retornadas pela API.
+- Diagramas de fluxo e sequência: ajudam a mostrar o caminho completo desde o upload até a resposta do chat, incluindo a interação entre frontend, API, serviços e componentes de IA.
+- Matriz de requisitos com critérios de aceitação: facilita a validação de implementação, rastreio de mudanças e alinhamento entre equipe executora e área preponente.
+
+### Sugestão de composição mínima para a próxima fase
+
+Para evoluir a especificação de forma prática, recomenda-se consolidar os seguintes artefatos em conjunto:
+
+1. Uma matriz de requisitos funcionais e não funcionais com prioridade e criticidade.
+2. Um conjunto de histórias de usuário com critérios de aceitação.
+3. Um documento de API contendo exemplos de request/response para upload, chat e deleção.
+4. Um diagrama de fluxo principal do processo de ingestão e resposta.
+5. Um registro de riscos e dependências técnicas para acompanhamento contínuo.
+
+Esses artefatos permitem transformar o entendimento atual do projeto em uma especificação mais objetiva, facilitando a comunicação entre desenvolvimento, negócios e validação de solução.
+
+---
+
 ## Testes
 
 A suite de testes cobre todos os componentes do sistema:
