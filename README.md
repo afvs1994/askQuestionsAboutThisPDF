@@ -945,9 +945,9 @@ Esta seção consolida a compreensão do projeto em termos de requisitos, regras
 | RN-02 | As respostas devem ser baseadas em trechos reais dos documentos e não em conhecimento genérico do modelo. | Pipeline RAG / Resposta do chat | Em desenvolvimento |
 | RN-03 | A busca pode ser global ou filtrada por documento, alterando o escopo e a precisão da resposta. | Interface de filtro / API de chat | Em desenvolvimento |
 | RN-04 | A entrada de pergunta deve ser válida e não vazia. | API de chat / Schema de validação | Em desenvolvimento |
-~~| RN-05 | O número de chunks recuperados para uma consulta deve respeitar limites definidos pela aplicação. | Configuração / Busca vetorial | Em desenvolvimento |~~
+| ~~RN-05~~ | ~~O número de chunks recuperados para uma consulta deve respeitar limites definidos pela aplicação.~~ | ~~Configuração / Busca vetorial~~ | ~~Em desenvolvimento~~ |
 | RN-06 | A remoção de documentos deve ser permanente e irreversível, com limpeza do registro, dos arquivos e dos vetores associados. | Interface e API de deleção | Em desenvolvimento |
-~~| RN-07 | Apenas formatos previamente suportados devem ser aceitos para ingestão. | Loader de arquivos / Upload | Em desenvolvimento |~~
+| ~~RN-07~~ | ~~Apenas formatos previamente suportados devem ser aceitos para ingestão.~~ | ~~Loader de arquivos / Upload~~ | ~~Em desenvolvimento~~ |
 
 ### Lacunas e ambiguidades
 
