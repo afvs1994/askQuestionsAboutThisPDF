@@ -914,7 +914,7 @@ Esta seção consolida a compreensão do projeto em termos de requisitos, regras
 
 | ID | Descrição do Requisito | Prioridade | Origem | Verificação | Status |
 |---|---|---|---|---|---|
-| RF-01 | O sistema deve permitir o upload de um ou mais documentos em formatos suportados, incluindo PDF, DOCX e XLSX. | Alta | Negócio / Interface | Validar por teste de interface e endpoint de upload | Em desenvolvimento |
+| RF-01 | O sistema deve permitir o upload de um ou mais documentos em formatos suportados, incluindo PDF, DOCX ~~e XLSX~~. | Alta | Negócio / Interface | Validar por teste de interface e endpoint de upload | Em desenvolvimento |
 | RF-02 | O sistema deve extrair texto dos documentos carregados e preservar metadados de localização, como página, planilha e linhas, quando disponíveis. | Alta | Requisito técnico | Validar por testes de extração de arquivos e inspeção dos resultados | Em desenvolvimento |
 | RF-03 | O sistema deve dividir o conteúdo extraído em chunks e indexá-los para busca semântica. | Alta | Arquitetura do RAG | Validar pela criação de chunks e indexação no vetor store | Em desenvolvimento |
 | RF-04 | O sistema deve gerar embeddings para os chunks e armazená-los localmente para recuperação posterior. | Alta | Arquitetura do RAG | Validar pela geração e persistência dos embeddings | Em desenvolvimento |
@@ -945,9 +945,9 @@ Esta seção consolida a compreensão do projeto em termos de requisitos, regras
 | RN-02 | As respostas devem ser baseadas em trechos reais dos documentos e não em conhecimento genérico do modelo. | Pipeline RAG / Resposta do chat | Em desenvolvimento |
 | RN-03 | A busca pode ser global ou filtrada por documento, alterando o escopo e a precisão da resposta. | Interface de filtro / API de chat | Em desenvolvimento |
 | RN-04 | A entrada de pergunta deve ser válida e não vazia. | API de chat / Schema de validação | Em desenvolvimento |
-| RN-05 | O número de chunks recuperados para uma consulta deve respeitar limites definidos pela aplicação. | Configuração / Busca vetorial | Em desenvolvimento |
+~~| RN-05 | O número de chunks recuperados para uma consulta deve respeitar limites definidos pela aplicação. | Configuração / Busca vetorial | Em desenvolvimento |~~
 | RN-06 | A remoção de documentos deve ser permanente e irreversível, com limpeza do registro, dos arquivos e dos vetores associados. | Interface e API de deleção | Em desenvolvimento |
-| RN-07 | Apenas formatos previamente suportados devem ser aceitos para ingestão. | Loader de arquivos / Upload | Em desenvolvimento |
+~~| RN-07 | Apenas formatos previamente suportados devem ser aceitos para ingestão. | Loader de arquivos / Upload | Em desenvolvimento |~~
 
 ### Lacunas e ambiguidades
 
@@ -1002,33 +1002,6 @@ Esta seção consolida a compreensão do projeto em termos de requisitos, regras
 - CA-03 — Uma resposta deve incluir fontes quando houver contexto recuperado.
 - CA-04 — Um documento removido deve deixar de aparecer na lista e não deve mais ser recuperado em consultas.
 - CA-05 — Um formato não suportado deve ser rejeitado sem indexação parcial.
-
-### Protótipo da tela do RAG
-
-A tela principal do RAG pode ser representada como um layout dividido em três áreas principais:
-
-1. Painel lateral esquerdo: upload de documentos e lista de documentos carregados.
-2. Centro: filtro de escopo do repositório e campo de pergunta.
-3. Painel lateral direito: resposta do assistente e lista de fontes/citações.
-
-Exemplo conceitual de estrutura:
-
-```text
-+---------------------------------------------------------------+
-| Assistente conversacional baseado em RAG                     |
-+---------------------------------------------------------------+
-| Documentos carregados | Filtro de documentos | Pergunta      |
-| - Upload             | - Todos os docs      | [campo]      |
-| - Lista documentos   | - Documento X        | [Enviar]     |
-+---------------------------------------------------------------+
-| Resposta do assistente                                       |
-| "Com base nos documentos, ..."                               |
-| Fonte 1: documento.pdf | página 12 | score 0.91              |
-| Fonte 2: manual.docx | trecho ...                             |
-+---------------------------------------------------------------+
-```
-
-Esse protótipo representa a experiência central do sistema: carregamento de documentos, consulta contextualizada e validação por fontes.
 
 ---
 
