@@ -179,6 +179,122 @@ O sistema segue o padrão de **Pipeline RAG**:
 
 ---
 
+## Descrição em Linguagem Natural
+
+O sistema é uma solução de busca e resposta sobre documentos privados, orientada por processamento local e recuperação semântica de informação. O objetivo principal é permitir que um usuário carregue arquivos de conhecimento, extraia seu conteúdo, transforme esse conteúdo em representações vetoriais e, em seguida, faça perguntas em linguagem natural sobre os documentos, recebendo respostas baseadas em trechos reais do material carregado.
+
+### Escopo
+
+O escopo funcional do sistema inclui:
+- upload de documentos em formatos suportados;
+- extração de texto e preservação de contexto e metadados;
+- divisão do conteúdo em blocos menores para indexação;
+- busca semântica por similaridade;
+- geração de resposta com contexto recuperado;
+- exibição de fontes e citações;
+- remoção de documentos do repositório;
+- interação por interface web ou API REST.
+
+### Nível da visão
+
+A visão adotada é a de uma solução de arquitetura de software em nível de sistema funcional e operacional, com foco em:
+- integração entre interface, API e serviços de processamento;
+- persistência local de documentos e índices vetoriais;
+- independência da infraestrutura da nuvem para o fluxo principal;
+- uso de metodologia RAG para combinar recuperação e geração.
+
+### Limites e responsabilidades
+
+O sistema é responsável por:
+- receber arquivos do usuário;
+- transformar texto em chunks e embeddings;
+- manter uma base vetorial local;
+- responder perguntas com contexto documental;
+- demonstrar as fontes de resposta para validação humana.
+
+O sistema não é, em seu estado atual, uma plataforma multiusuário, com autenticação robusta, autorização granular, auditoria completa ou controle de retenção formal. Também não substitui a validação humana em decisões críticas.
+
+### Integrações
+
+As integrações principais são:
+- Frontend em React com backend FastAPI;
+- FastAPI com serviços de ingestão, chunking, embeddings e busca vetorial;
+- ChromaDB para armazenamento vetorial persistente;
+- Ollama para execução do modelo de linguagem local;
+- SentenceTransformers para geração de embeddings semânticos;
+- Sistema de arquivos local para armazenamento de documentos originais e registro de metadados.
+
+### Restrições e lacunas
+
+As principais restrições e lacunas do sistema são:
+- depende de ambiente local e de componentes como Ollama e ChromaDB;
+- suporta um conjunto limitado de formatos de arquivo;
+- não há isolamento explícito por usuário ou organização;
+- não há autenticação/autorização formal;
+- não há política formal de backup, retenção e recuperação de dados;
+- a qualidade da resposta depende diretamente da qualidade do documento carregado e da capacidade do modelo local.
+
+---
+
+## Diagrama
+
+### Diagrama Estrutural
+
+```mermaid
+flowchart LR
+    U[Usuário] --> FE[Frontend React + Vite]
+    FE --> API[FastAPI Backend]
+    API --> RAG[RAGService]
+    RAG --> LDR[FileLoader]
+    LDR --> TXT[Texto extraído]
+    TXT --> CHK[Chunking]
+    CHK --> EMB[SentenceTransformers]
+    EMB --> VEC[ChromaDB]
+    RAG --> STO[DocumentStorage]
+    STO --> FS[Sistema de arquivos local]
+    RAG --> LLM[Ollama + Llama 3.1]
+    VEC --> RAG
+    LLM --> RAG
+    RAG --> API
+    API --> FE
+```
+
+### Diagrama Comportamental
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário
+    participant F as Frontend
+    participant A as FastAPI
+    participant S as RAGService
+    participant V as ChromaDB
+    participant L as Ollama
+    participant D as DocumentStorage
+
+    U->>F: Carrega documento
+    F->>A: POST /api/documents/upload
+    A->>S: ingest_files(files)
+    S->>D: salva arquivo original
+    S->>S: extrai texto e gera chunks
+    S->>V: armazena embeddings e metadados
+    V-->>S: confirmação
+    S-->>A: documentos processados
+    A-->>F: resposta de sucesso
+
+    U->>F: Digita pergunta
+    F->>A: POST /api/chat
+    A->>S: answer_question(question)
+    S->>V: busca chunks por similaridade
+    V-->>S: trechos relevantes
+    S->>L: monta prompt com contexto
+    L-->>S: resposta gerada
+    S-->>A: answer + sources
+    A-->>F: JSON de resposta
+    F-->>U: exibe resposta e fontes
+```
+
+---
+
 ## Estrutura do Projeto
 
 ```
